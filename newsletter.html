@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Howard Homestead | Newsletter</title>
+  <meta name="description" content="Subscribe to quarterly updates from The Howard Homestead." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="header">
+    <div class="nav">
+      <div class="brand">
+        <div class="name">The Howard Homestead</div>
+        <div class="sub">Goods & services — all from the homestead. · Northwest Pennsylvania</div>
+      </div>
+      <div class="navlinks">
+        <a href="index.html">Home</a>
+        <a href="goods.html">Goods</a>
+        <a href="contracting.html">Contracting</a>
+        <a href="media.html">Gallery & Media</a>
+        <a href="newsletter.html">Newsletter</a>
+      </div>
+    </div>
+  </div>
+
+  <main class="container">
+  
+<section class="hero">
+  <div class="kicker">Newsletter</div>
+  <h1>Quarterly homestead updates</h1>
+  <p>
+    No social media required. If you want to follow along, get inventory updates, and see what we’re building next,
+    subscribe to our quarterly newsletter.
+  </p>
+</section>
+
+<div class=\"ornament\"></div>
+<div class="grid">
+  <div class="card">
+    <h2>Subscribe</h2>
+    <p>
+      This is a placeholder signup form. When you’re ready, we can connect it to a provider like Mailchimp, ConvertKit,
+      or Buttondown, or keep it simple with an email list.
+    </p>
+
+    <form class="form" action="NEWSLETTER_ENDPOINT_PLACEHOLDER" method="POST">
+      <label>
+        Name (optional)
+        <input name="name" placeholder="Name" />
+      </label>
+
+      <label>
+        Email
+        <input type="email" name="email" placeholder="you@example.com" required />
+      </label>
+
+      <button class="btn" type="submit">Subscribe</button>
+
+      <div class="notice">
+        Replace <strong>NEWSLETTER_ENDPOINT_PLACEHOLDER</strong> with your newsletter provider form action URL.
+        If you want a zero-tool interim option, we can switch this to a “mailto” subscription request.
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>What you’ll get</h2>
+    <ul class="list">
+      <li>Seasonal inventory notes (eggs, firewood, garden/orchard)</li>
+      <li>New products & small-batch releases (e.g., boot rub)</li>
+      <li>Homestead updates, photos, and upcoming plans</li>
+      <li>Pickup/ordering windows</li>
+    </ul>
+  </div>
+</div>
+
+  </main>
+
+  <div class="footer">
+    <div class="container">
+      <div class="columns">
+        <div class="col">
+          <strong>The Howard Homestead</strong><br/>
+          <span>Stewardship · Craftsmanship · Integrity</span>
+        </div>
+        <div class="col">
+          <div><a href="newsletter.html">Quarterly Newsletter</a></div>
+          <div><a href="media.html">Gallery & Media</a></div>
+        </div>
+        <div class="col">
+          <div><a href="contracting.html">Contracting Inquiry</a></div>
+          <div><a href="goods.html">Goods & Ordering</a></div>
+        </div>
+      </div>
+      <hr/>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center">
+        <div>© <span id="y"></span> The Howard Homestead. All rights reserved.</div>
+        <div style="color:var(--muted)">Built on GitHub Pages-ready static files.</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="site.js"></script>
+  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+</body>
+</html>
