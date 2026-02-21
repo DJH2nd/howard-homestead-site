@@ -25,106 +25,438 @@
   </div>
 
   <main class="container">
-  
-<section class="hero">
-  <div class="kicker">From our homestead to your home</div>
-  <h1>One place. Many offerings. One standard.</h1>
-  <p>
-    The Howard Homestead is a family-run homestead enterprise in northwest Pennsylvania.
-    We provide a diverse mix of goods and services — but everything we offer is rooted in what we build, raise, and make here.
-  </p>
-  <div class="badges">
-    <div class="badge">Made on-site</div>
-    <div class="badge">Local pickup & local service</div>
-    <div class="badge">Seasonal inventory</div>
-    <div class="badge">Built to last</div>
+
+    <section class="hero">
+      <div class="kicker">From our homestead to your home</div>
+      <h1>One place. Many offerings. One standard.</h1>
+      <p>
+        The Howard Homestead is a family-run homestead enterprise in northwest Pennsylvania.
+        We provide a diverse mix of goods and services — but everything we offer is rooted in what we build, raise, and make here.
+      </p>
+      <div class="badges">
+        <div class="badge">Made on-site</div>
+        <div class="badge">Local pickup & local service</div>
+        <div class="badge">Seasonal inventory</div>
+        <div class="badge">Built to last</div>
+      </div>
+    </section>
+
+    <!-- ====== DAILY HUB: CLOCK + WEATHER (ENGLISH UNITS) + 3-DAY PRECIP AMOUNTS ====== -->
+    <div class="card" id="hub-weather" style="margin-top:18px;">
+      <div class="split">
+        <div class="left">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+            <div>
+              <div class="kicker" style="margin:0 0 6px 0;">Daily Hub — Fairview Twp / Fredonia, PA</div>
+              <div id="clock" style="font-size:42px;font-weight:800;letter-spacing:.5px;line-height:1.1;">--:--:--.---</div>
+              <div id="clockDate" style="color:var(--muted);margin-top:6px;">—</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="kicker" style="margin:0 0 6px 0;">Weather Updated</div>
+              <div id="updatedAt" style="color:var(--muted);">—</div>
+            </div>
+          </div>
+
+          <hr/>
+
+          <div class="grid" style="gap:12px;">
+            <div class="card half" style="margin:0;">
+              <div class="kicker" style="margin:0 0 6px 0;">Temp</div>
+              <div id="tempF" style="font-size:30px;font-weight:800;">—</div>
+            </div>
+
+            <div class="card half" style="margin:0;">
+              <div class="kicker" style="margin:0 0 6px 0;">Humidity</div>
+              <div id="humidity" style="font-size:30px;font-weight:800;">—</div>
+            </div>
+
+            <div class="card half" style="margin:0;">
+              <div class="kicker" style="margin:0 0 6px 0;">Wind Speed</div>
+              <div id="windMph" style="font-size:26px;font-weight:800;">—</div>
+            </div>
+
+            <div class="card half" style="margin:0;">
+              <div class="kicker" style="margin:0 0 6px 0;">Wind Direction</div>
+              <div id="windDir" style="font-size:26px;font-weight:800;">—</div>
+            </div>
+          </div>
+
+          <div style="margin-top:14px;">
+            <div class="kicker" style="margin:0 0 8px 0;">3-Day Precip Amounts (liquid equivalent)</div>
+            <div class="grid" style="gap:12px;">
+              <div class="card half" style="margin:0;">
+                <div id="pDay1Label" class="kicker" style="margin:0 0 6px 0;">Day 1</div>
+                <div id="pDay1" style="font-size:24px;font-weight:800;">—</div>
+              </div>
+              <div class="card half" style="margin:0;">
+                <div id="pDay2Label" class="kicker" style="margin:0 0 6px 0;">Day 2</div>
+                <div id="pDay2" style="font-size:24px;font-weight:800;">—</div>
+              </div>
+              <div class="card half" style="margin:0;">
+                <div id="pDay3Label" class="kicker" style="margin:0 0 6px 0;">Day 3</div>
+                <div id="pDay3" style="font-size:24px;font-weight:800;">—</div>
+              </div>
+              <div class="card half" style="margin:0;">
+                <div class="kicker" style="margin:0 0 6px 0;">Notes</div>
+                <div id="weatherNote" style="color:var(--muted);font-size:14px;">Loading…</div>
+              </div>
+            </div>
+          </div>
+
+          <p class="notice" style="margin-top:14px;">
+            Weather numbers + precip amounts are rendered in <strong>English units</strong>. Radar embed (right side) is the MyRadar visual layer.
+          </p>
+        </div>
+
+        <div class="right">
+          <h2 style="margin-top:0;">Radar</h2>
+          <p style="color:var(--muted);margin-top:-6px;">
+            Paste your MyRadar embed snippet below. Keep it simple: a single iframe is best.
+          </p>
+
+          <!-- <section id="hub-weather" style="max-width: 1100px; margin: 0 auto; padding: 18px;">
+  <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:16px; align-items:stretch;">
+    <!-- LEFT: Weather hero numbers -->
+    <div style="border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+        <div>
+          <div style="font-size:14px; opacity:.75;">Fairview Twp / Fredonia, PA</div>
+          <div id="clock" style="font-size:34px; font-weight:700; letter-spacing:.5px;">--:--:--.---</div>
+          <div id="clockDate" style="font-size:13px; opacity:.8;"></div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:14px; opacity:.75;">Updated</div>
+          <div id="updatedAt" style="font-size:13px; opacity:.9;">—</div>
+        </div>
+      </div>
+
+      <hr style="border:0; border-top:1px solid rgba(255,255,255,.12); margin:14px 0;">
+
+      <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px;">
+        <div>
+          <div style="font-size:12px; opacity:.75;">Temp</div>
+          <div id="tempF" style="font-size:26px; font-weight:700;">—</div>
+        </div>
+        <div>
+          <div style="font-size:12px; opacity:.75;">Humidity</div>
+          <div id="humidity" style="font-size:26px; font-weight:700;">—</div>
+        </div>
+        <div>
+          <div style="font-size:12px; opacity:.75;">Wind</div>
+          <div id="windMph" style="font-size:22px; font-weight:700;">—</div>
+        </div>
+        <div>
+          <div style="font-size:12px; opacity:.75;">Direction</div>
+          <div id="windDir" style="font-size:22px; font-weight:700;">—</div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;">
+        <div style="font-size:12px; opacity:.75; margin-bottom:6px;">Precip totals (liquid equivalent)</div>
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;">
+          <div style="border:1px solid rgba(255,255,255,.10); border-radius:12px; padding:10px;">
+            <div id="pDay1Label" style="font-size:12px; opacity:.8;">Day 1</div>
+            <div id="pDay1" style="font-size:22px; font-weight:700;">—</div>
+          </div>
+          <div style="border:1px solid rgba(255,255,255,.10); border-radius:12px; padding:10px;">
+            <div id="pDay2Label" style="font-size:12px; opacity:.8;">Day 2</div>
+            <div id="pDay2" style="font-size:22px; font-weight:700;">—</div>
+          </div>
+          <div style="border:1px solid rgba(255,255,255,.10); border-radius:12px; padding:10px;">
+            <div id="pDay3Label" style="font-size:12px; opacity:.8;">Day 3</div>
+            <div id="pDay3" style="font-size:22px; font-weight:700;">—</div>
+          </div>
+        </div>
+        <div id="weatherNote" style="margin-top:10px; font-size:12px; opacity:.75;"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Radar (MyRadar embed placeholder) -->
+    <div style="border:1px solid rgba(255,255,255,.12); border-radius:14px; overflow:hidden;">
+      <!-- Put your MyRadar iframe/snippet here -->
+      <div style="padding:10px; font-size:12px; opacity:.75; border-bottom:1px solid rgba(255,255,255,.12);">
+        Radar (MyRadar)
+      </div>
+      <div style="height: 360px; display:flex; align-items:center; justify-content:center; opacity:.75;">
+        Paste MyRadar embed iframe here
+      </div>
+    </div>
   </div>
 </section>
 
-<div class=\"ornament\"></div>
-<div class="grid">
-  <div class="card half">
-    <h2>Desiree’s Home Bakery (on the homestead)</h2>
-    <p>
-      Desiree’s Home Bakery operates right here on the homestead. If you’re visiting for bakery pickup,
-      you’re in the right place — the bakery is one part of what we do, and it lives under the same homestead umbrella.
-    </p>
-    <div class="actions">
-      <a class="btn" href="BAKERY_LINK_PLACEHOLDER" target="_blank" rel="noopener">Visit the Bakery Site</a>
-      <a class="btn secondary" href="newsletter.html">Get quarterly updates</a>
-    </div>
-    <p class="notice">Replace <strong>BAKERY_LINK_PLACEHOLDER</strong> with Desiree’s bakery website link when ready.</p>
-  </div>
+<script>
+(() => {
+  // ---- Millisecond clock (updates as fast as the browser will paint) ----
+  const clockEl = document.getElementById("clock");
+  const clockDateEl = document.getElementById("clockDate");
+  function pad2(n){ return String(n).padStart(2,"0"); }
+  function pad3(n){ return String(n).padStart(3,"0"); }
 
-  <div class="card half">
-    <h2>Goods made here</h2>
-    <p>
-      Seasonal inventory and homestead-made items (examples: eggs, baked goods pickup info, firewood, and
-      handcrafted products like boot rub). Inventory will be posted as we build it.
-    </p>
-    <div class="actions">
-      <a class="btn" href="goods.html">View Goods</a>
-      <a class="btn secondary" href="newsletter.html">Join the newsletter</a>
-    </div>
-  </div>
+  function tickClock(){
+    const d = new Date();
+    clockEl.textContent = `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}.${pad3(d.getMilliseconds())}`;
+    clockDateEl.textContent = d.toLocaleDateString(undefined, { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+    requestAnimationFrame(tickClock);
+  }
+  requestAnimationFrame(tickClock);
 
-  <div class="card half">
-    <h2>Contracting & property services</h2>
-    <p>
-      Practical, durable work — the same way we build on the homestead.
-      Use the inquiry form and we’ll follow up with next steps.
-    </p>
-    <div class="actions">
-      <a class="btn" href="contracting.html">Start an Inquiry</a>
-      <a class="btn secondary" href="media.html">See photos & media</a>
-    </div>
-  </div>
+  // ---- Weather (NWS) - English units output ----
+  // Starting point: Fairview Township center (adjust if you want your exact property point)
+  const LAT = 41.33639;   // :contentReference[oaicite:3]{index=3}
+  const LON = -80.22012;  // :contentReference[oaicite:4]{index=4}
 
-  <div class="card half">
-    <h2>Gallery & media</h2>
-    <p>
-      A place to post photos, short updates, and embedded videos (YouTube links when you’re ready).
-      No social media required.
-    </p>
-    <div class="actions">
-      <a class="btn" href="media.html">Open Gallery</a>
-      <a class="btn secondary" href="newsletter.html">Stay in the loop</a>
-    </div>
-  </div>
-</div>
+  const tempFEl = document.getElementById("tempF");
+  const humidityEl = document.getElementById("humidity");
+  const windMphEl = document.getElementById("windMph");
+  const windDirEl = document.getElementById("windDir");
+  const updatedAtEl = document.getElementById("updatedAt");
+  const noteEl = document.getElementById("weatherNote");
 
-<div class="card">
-  <div class="split">
-    <div class="left">
-      <h2>What “homestead-rooted” means</h2>
-      <p>
-        We’re not a random bundle of side gigs. The homestead is the source.
-        Whether it’s food, goods, or services — our standard is the same: stewardship, craftsmanship,
-        integrity, and leaving things better than we found them.
-      </p>
-      <ul class="list">
-        <li><strong>Clear navigation</strong> so bakery customers know exactly where to go.</li>
-        <li><strong>Room to grow</strong> into online ordering later (boot rub, seasonal goods, etc.).</li>
-        <li><strong>Quarterly newsletter</strong> so local supporters can follow along without social media.</li>
-      </ul>
-      <div class="actions">
-        <a class="btn" href="contracting.html">Contracting inquiry</a>
-        <a class="btn secondary" href="goods.html">Goods & ordering</a>
+  const p1 = document.getElementById("pDay1");
+  const p2 = document.getElementById("pDay2");
+  const p3 = document.getElementById("pDay3");
+  const p1L = document.getElementById("pDay1Label");
+  const p2L = document.getElementById("pDay2Label");
+  const p3L = document.getElementById("pDay3Label");
+
+  function cToF(c){ return (c * 9/5) + 32; }
+  function msToMph(ms){ return ms * 2.2369362920544; }
+  function mmToIn(mm){ return mm / 25.4; }
+
+  function degToCardinal(deg){
+    if (deg === null || deg === undefined || Number.isNaN(deg)) return "—";
+    const dirs = ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+    return dirs[Math.round(deg / 22.5) % 16];
+  }
+
+  async function fetchJSON(url){
+    const res = await fetch(url, { headers: { "Accept":"application/ld+json,application/json" } });
+    if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+    return res.json();
+  }
+
+  // Pull latest observation: temp, humidity, wind
+  async function updateCurrent(){
+    const point = await fetchJSON(`https://api.weather.gov/points/${LAT},${LON}`);
+    const stationsUrl = point.properties.observationStations;
+    const stations = await fetchJSON(stationsUrl);
+    const firstStation = stations.observationStations?.[0];
+    if (!firstStation) throw new Error("No observation station found.");
+    const obs = await fetchJSON(`${firstStation}/observations/latest`);
+
+    const tC = obs.properties.temperature?.value;
+    const rh = obs.properties.relativeHumidity?.value;
+    const wMs = obs.properties.windSpeed?.value;
+    const wDeg = obs.properties.windDirection?.value;
+
+    // Some stations return nulls during outages; keep UI stable.
+    tempFEl.textContent = (tC !== null && tC !== undefined) ? `${Math.round(cToF(tC))}°F` : "—";
+    humidityEl.textContent = (rh !== null && rh !== undefined) ? `${Math.round(rh)}%` : "—";
+    windMphEl.textContent = (wMs !== null && wMs !== undefined) ? `${Math.round(msToMph(wMs))} mph` : "—";
+    windDirEl.textContent = (wDeg !== null && wDeg !== undefined) ? `${degToCardinal(wDeg)} (${Math.round(wDeg)}°)` : "—";
+
+    updatedAtEl.textContent = new Date(obs.properties.timestamp).toLocaleString();
+    noteEl.textContent = "Data: NWS observations + NWS quantitative precipitation (converted to inches).";
+  }
+
+  // 3-day precipitation totals from quantitativePrecipitation (often in mm; convert to inches)
+  async function updatePrecip3Day(){
+    const point = await fetchJSON(`https://api.weather.gov/points/${LAT},${LON}`);
+    const gridDataUrl = point.properties.forecastGridData; // raw numeric grids
+    const grid = await fetchJSON(gridDataUrl);
+
+    const series = grid.properties.quantitativePrecipitation?.values;
+    if (!Array.isArray(series) || series.length === 0) {
+      p1.textContent = p2.textContent = p3.textContent = "—";
+      noteEl.textContent = "Precip totals unavailable from grid data at the moment.";
+      return;
+    }
+
+    // Bucket by local date for next 3 distinct dates
+    const buckets = new Map(); // 'YYYY-MM-DD' -> inches
+    const now = new Date();
+    for (const v of series) {
+      const startISO = v.validTime.split("/")[0];
+      const start = new Date(startISO);
+      if (start < now) continue;
+
+      const dayKey = start.toLocaleDateString(undefined, { year:"numeric", month:"2-digit", day:"2-digit" });
+      const mm = (v.value ?? 0);
+      const inches = mmToIn(mm);
+
+      buckets.set(dayKey, (buckets.get(dayKey) || 0) + inches);
+      if (buckets.size >= 3) {
+        // keep collecting within same 3 days only
+        // (grid provides multiple time slices per day)
+      }
+    }
+
+    const days = Array.from(buckets.entries()).slice(0,3);
+    const labels = [p1L,p2L,p3L];
+    const vals = [p1,p2,p3];
+
+    for (let i=0; i<3; i++){
+      if (!days[i]) { labels[i].textContent = `Day ${i+1}`; vals[i].textContent = "—"; continue; }
+      labels[i].textContent = days[i][0];
+      vals[i].textContent = `${days[i][1].toFixed(2)} in`;
+    }
+  }
+
+  async function refreshAll(){
+    try {
+      await Promise.all([updateCurrent(), updatePrecip3Day()]);
+    } catch (e) {
+      noteEl.textContent = `Weather load issue: ${e.message}`;
+    }
+  }
+
+  refreshAll();
+  // Refresh numbers every 5 minutes (NWS is cache-friendly and not intended for rapid polling)
+  setInterval(refreshAll, 5 * 60 * 1000);
+})();
+</script>
+          <div style="border:1px solid rgba(255,255,255,.12);border-radius:12px;overflow:hidden;">
+            <div style="height:360px;display:flex;align-items:center;justify-content:center;color:var(--muted);padding:12px;">
+              MyRadar iframe goes here
+            </div>
+          </div>
+
+          <p class="notice" style="margin-top:12px;">
+            When you grab the MyRadar embed code, paste it right where the placeholder box is.
+          </p>
+        </div>
       </div>
     </div>
-    <div class="right">
-      <h2>Quick links</h2>
-      <ul class="list">
-        <li><a href="BAKERY_LINK_PLACEHOLDER" target="_blank" rel="noopener">Desiree’s Home Bakery website</a></li>
-        <li><a href="contracting.html">Contracting inquiry form</a></li>
-        <li><a href="goods.html">Goods / ordering page</a></li>
-        <li><a href="newsletter.html">Quarterly newsletter signup</a></li>
-        <li><a href="media.html">Gallery & media</a></li>
-      </ul>
-      <p class="notice">We can hide or show any section as you refine the brand.</p>
+
+    <!-- ====== MARKETS: COMMODITIES + INDICES (TRADINGVIEW TICKER STRIP) ====== -->
+    <div class="card" style="margin-top:18px;">
+      <h2 style="margin-top:0;">Markets & Commodities</h2>
+      <p style="color:var(--muted);margin-top:-6px;">
+        Gold · Silver · Copper · Aluminum · Crude · Heating Oil · Lumber · Corn · Soybeans · Wheat · Live Cattle · S&amp;P 500 · Dow Jones
+      </p>
+
+      <!-- TradingView: Ticker widget -->
+      <div class="tradingview-widget-container" style="margin-top:10px;">
+        <div class="tradingview-widget-container__widget"></div>
+        <script
+          type="text/javascript"
+          src="https://s3.tradingview.com/external-embedding/embed-widget-ticker.js"
+          async
+        >
+        {
+          "symbols": [
+            {"proName":"COMEX:GC1!","title":"Gold"},
+            {"proName":"COMEX:SI1!","title":"Silver"},
+            {"proName":"COMEX:HG1!","title":"Copper"},
+            {"proName":"COMEX:ALI1!","title":"Aluminum"},
+            {"proName":"NYMEX:CL1!","title":"WTI Crude"},
+            {"proName":"NYMEX:HO1!","title":"Heating Oil (ULSD)"},
+            {"proName":"CME:LBR1!","title":"Lumber"},
+            {"proName":"CBOT:ZC1!","title":"Corn"},
+            {"proName":"CBOT:ZS1!","title":"Soybeans"},
+            {"proName":"CBOT:ZW1!","title":"Wheat"},
+            {"proName":"CME:LE1!","title":"Live Cattle"},
+            {"proName":"SP:SPX","title":"S&P 500"},
+            {"proName":"DJ:DJI","title":"Dow Jones"}
+          ],
+          "showSymbolLogo": true,
+          "isTransparent": true,
+          "displayMode": "adaptive",
+          "locale": "en"
+        }
+        </script>
+      </div>
+
+      <p class="notice" style="margin-top:12px;">
+        Note: some futures feeds may be delayed depending on exchange permissions/data plans.
+      </p>
     </div>
-  </div>
-</div>
+
+    <div class="ornament"></div>
+
+    <div class="grid">
+      <div class="card half">
+        <h2>Desiree’s Home Bakery (on the homestead)</h2>
+        <p>
+          Desiree’s Home Bakery operates right here on the homestead. If you’re visiting for bakery pickup,
+          you’re in the right place — the bakery is one part of what we do, and it lives under the same homestead umbrella.
+        </p>
+        <div class="actions">
+          <a class="btn" href="BAKERY_LINK_PLACEHOLDER" target="_blank" rel="noopener">Visit the Bakery Site</a>
+          <a class="btn secondary" href="newsletter.html">Get quarterly updates</a>
+        </div>
+        <p class="notice">Replace <strong>BAKERY_LINK_PLACEHOLDER</strong> with Desiree’s bakery website link when ready.</p>
+      </div>
+
+      <div class="card half">
+        <h2>Goods made here</h2>
+        <p>
+          Seasonal inventory and homestead-made items (examples: eggs, baked goods pickup info, firewood, and
+          handcrafted products like boot rub). Inventory will be posted as we build it.
+        </p>
+        <div class="actions">
+          <a class="btn" href="goods.html">View Goods</a>
+          <a class="btn secondary" href="newsletter.html">Join the newsletter</a>
+        </div>
+      </div>
+
+      <div class="card half">
+        <h2>Contracting & property services</h2>
+        <p>
+          Practical, durable work — the same way we build on the homestead.
+          Use the inquiry form and we’ll follow up with next steps.
+        </p>
+        <div class="actions">
+          <a class="btn" href="contracting.html">Start an Inquiry</a>
+          <a class="btn secondary" href="media.html">See photos & media</a>
+        </div>
+      </div>
+
+      <div class="card half">
+        <h2>Gallery & media</h2>
+        <p>
+          A place to post photos, short updates, and embedded videos (YouTube links when you’re ready).
+          No social media required.
+        </p>
+        <div class="actions">
+          <a class="btn" href="media.html">Open Gallery</a>
+          <a class="btn secondary" href="newsletter.html">Stay in the loop</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="split">
+        <div class="left">
+          <h2>What “homestead-rooted” means</h2>
+          <p>
+            We’re not a random bundle of side gigs. The homestead is the source.
+            Whether it’s food, goods, or services — our standard is the same: stewardship, craftsmanship,
+            integrity, and leaving things better than we found them.
+          </p>
+          <ul class="list">
+            <li><strong>Clear navigation</strong> so bakery customers know exactly where to go.</li>
+            <li><strong>Room to grow</strong> into online ordering later (boot rub, seasonal goods, etc.).</li>
+            <li><strong>Quarterly newsletter</strong> so local supporters can follow along without social media.</li>
+          </ul>
+          <div class="actions">
+            <a class="btn" href="contracting.html">Contracting inquiry</a>
+            <a class="btn secondary" href="goods.html">Goods & ordering</a>
+          </div>
+        </div>
+        <div class="right">
+          <h2>Quick links</h2>
+          <ul class="list">
+            <li><a href="BAKERY_LINK_PLACEHOLDER" target="_blank" rel="noopener">Desiree’s Home Bakery website</a></li>
+            <li><a href="contracting.html">Contracting inquiry form</a></li>
+            <li><a href="goods.html">Goods / ordering page</a></li>
+            <li><a href="newsletter.html">Quarterly newsletter signup</a></li>
+            <li><a href="media.html">Gallery & media</a></li>
+          </ul>
+          <p class="notice">We can hide or show any section as you refine the brand.</p>
+        </div>
+      </div>
+    </div>
 
   </main>
 
@@ -152,7 +484,141 @@
     </div>
   </div>
 
+  <script>
+    // Footer year
+    document.getElementById('y').textContent = new Date().getFullYear();
+
+    // ===== Millisecond clock + Weather (English units) =====
+    (() => {
+      // ---- Millisecond clock (renders ms; browser repaint cadence varies) ----
+      const clockEl = document.getElementById("clock");
+      const clockDateEl = document.getElementById("clockDate");
+      function pad2(n){ return String(n).padStart(2,"0"); }
+      function pad3(n){ return String(n).padStart(3,"0"); }
+      function tickClock(){
+        const d = new Date();
+        clockEl.textContent = `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}.${pad3(d.getMilliseconds())}`;
+        clockDateEl.textContent = d.toLocaleDateString(undefined, { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+        requestAnimationFrame(tickClock);
+      }
+      requestAnimationFrame(tickClock);
+
+      // ---- Weather (NWS) - values converted to English output ----
+      // Fairview Township (Erie County) centroid-ish starting point
+      const LAT = 41.33639;
+      const LON = -80.22012;
+
+      const tempFEl = document.getElementById("tempF");
+      const humidityEl = document.getElementById("humidity");
+      const windMphEl = document.getElementById("windMph");
+      const windDirEl = document.getElementById("windDir");
+      const updatedAtEl = document.getElementById("updatedAt");
+      const noteEl = document.getElementById("weatherNote");
+
+      const p1 = document.getElementById("pDay1");
+      const p2 = document.getElementById("pDay2");
+      const p3 = document.getElementById("pDay3");
+      const p1L = document.getElementById("pDay1Label");
+      const p2L = document.getElementById("pDay2Label");
+      const p3L = document.getElementById("pDay3Label");
+
+      function cToF(c){ return (c * 9/5) + 32; }
+      function msToMph(ms){ return ms * 2.2369362920544; }
+      function mmToIn(mm){ return mm / 25.4; }
+
+      function degToCardinal(deg){
+        if (deg === null || deg === undefined || Number.isNaN(deg)) return "—";
+        const dirs = ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+        return dirs[Math.round(deg / 22.5) % 16];
+      }
+
+      async function fetchJSON(url){
+        const res = await fetch(url, { headers: { "Accept":"application/ld+json,application/json" } });
+        if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+        return res.json();
+      }
+
+      // Pull latest observation: temp, humidity, wind
+      async function updateCurrent(){
+        const point = await fetchJSON(`https://api.weather.gov/points/${LAT},${LON}`);
+        const stationsUrl = point.properties.observationStations;
+        const stations = await fetchJSON(stationsUrl);
+        const firstStation = stations.observationStations?.[0];
+        if (!firstStation) throw new Error("No observation station found.");
+        const obs = await fetchJSON(`${firstStation}/observations/latest`);
+
+        const tC = obs.properties.temperature?.value;
+        const rh = obs.properties.relativeHumidity?.value;
+        const wMs = obs.properties.windSpeed?.value;
+        const wDeg = obs.properties.windDirection?.value;
+
+        tempFEl.textContent = (tC !== null && tC !== undefined) ? `${Math.round(cToF(tC))}°F` : "—";
+        humidityEl.textContent = (rh !== null && rh !== undefined) ? `${Math.round(rh)}%` : "—";
+        windMphEl.textContent = (wMs !== null && wMs !== undefined) ? `${Math.round(msToMph(wMs))} mph` : "—";
+        windDirEl.textContent = (wDeg !== null && wDeg !== undefined) ? `${degToCardinal(wDeg)} (${Math.round(wDeg)}°)` : "—";
+
+        updatedAtEl.textContent = new Date(obs.properties.timestamp).toLocaleString();
+        noteEl.textContent = "Weather: NWS observations + NWS quantitative precipitation (converted to inches). Radar: MyRadar embed.";
+      }
+
+      // 3-day precip totals from quantitativePrecipitation (mm -> inches)
+      async function updatePrecip3Day(){
+        const point = await fetchJSON(`https://api.weather.gov/points/${LAT},${LON}`);
+        const gridDataUrl = point.properties.forecastGridData; // numeric grids
+        const grid = await fetchJSON(gridDataUrl);
+
+        const series = grid.properties.quantitativePrecipitation?.values;
+        if (!Array.isArray(series) || series.length === 0) {
+          p1.textContent = p2.textContent = p3.textContent = "—";
+          noteEl.textContent = "Precip totals unavailable from NWS grid data right now.";
+          return;
+        }
+
+        // Bucket by local date for next 3 distinct dates
+        const buckets = new Map(); // dateLabel -> inches
+        const now = new Date();
+
+        for (const v of series) {
+          const startISO = v.validTime.split("/")[0];
+          const start = new Date(startISO);
+          if (start < now) continue;
+
+          const dayLabel = start.toLocaleDateString(undefined, { weekday:"short", month:"short", day:"numeric" });
+          const mm = (v.value ?? 0);
+          const inches = mmToIn(mm);
+
+          buckets.set(dayLabel, (buckets.get(dayLabel) || 0) + inches);
+          if (buckets.size >= 3) {
+            // keep filling same 3 days only; ignore future days
+            // (we still need to allow more slices within those same days)
+          }
+        }
+
+        const days = Array.from(buckets.entries()).slice(0,3);
+        const labels = [p1L,p2L,p3L];
+        const vals = [p1,p2,p3];
+
+        for (let i=0; i<3; i++){
+          if (!days[i]) { labels[i].textContent = `Day ${i+1}`; vals[i].textContent = "—"; continue; }
+          labels[i].textContent = days[i][0];
+          vals[i].textContent = `${days[i][1].toFixed(2)} in`;
+        }
+      }
+
+      async function refreshAll(){
+        try {
+          await Promise.all([updateCurrent(), updatePrecip3Day()]);
+        } catch (e) {
+          noteEl.textContent = `Weather load issue: ${e.message}`;
+        }
+      }
+
+      refreshAll();
+      // Refresh every 5 minutes (friendly to NWS caching)
+      setInterval(refreshAll, 5 * 60 * 1000);
+    })();
+  </script>
+
   <script src="site.js"></script>
-  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
 </body>
 </html>
