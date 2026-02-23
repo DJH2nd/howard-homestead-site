@@ -154,6 +154,137 @@
         }
       }
 
+      // ---------- 3-day Forecast (NWS) w/ icons + PoP + wind + gusts ----------
+const forecastWrap = document.getElementById("forecast3");
+
+function windStr(dir, speed){
+  // NWS gives windDirection like "NW" and windSpeed like "10 to 15 mph"
+  const d = dir ? String(dir).trim() : "";
+  const s = speed ? String(speed).trim() : "";
+  return (d || s) ? `${d} ${s}`.trim() : "—";
+}
+
+async function fetchJSON(url){
+  const r = await fetch(url, {
+    cache: "no-store",
+    headers: {
+      "Accept": "application/geo+json"
+    }
+  });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+function dayKeyNY(dateObj){
+  // Bucket by NY local date
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    year: "numeric", month: "2-digit", day: "2-digit"
+  }).formatToParts(dateObj);
+  const get = t => parts.find(p=>p.type===t)?.value || "";
+  return `${get("year")}-${get("month")}-${get("day")}`;
+}
+
+async function syncForecast3Day(){
+  try {
+    // Reuse the same geocoded lat/lon used for the temperature
+    if (cachedLat === null || cachedLon === null) {
+      await geocodeZip();
+    }
+
+    // NWS "points" gives us the correct grid + forecast endpoints
+    const point = await fetchJSON(`https://api.weather.gov/points/${cachedLat},${cachedLon}`);
+    const forecastUrl = point.properties.forecast;
+    const gridUrl = point.properties.forecastGridData;
+
+    const [forecast, grid] = await Promise.all([
+      fetchJSON(forecastUrl),
+      fetchJSON(gridUrl)
+    ]);
+
+    const periods = forecast?.properties?.periods || [];
+    if (!periods.length) throw new Error("No forecast periods");
+
+    // Build 3-day cards using the next 3 distinct dates (NY time)
+    const now = new Date();
+    const dayMap = new Map(); // dayKey -> representative period (prefer daytime)
+    for (const p of periods) {
+      const start = new Date(p.startTime);
+      if (start < now) continue;
+
+      const k = dayKeyNY(start);
+      if (!dayMap.has(k)) {
+        dayMap.set(k, p);
+      } else {
+        // Prefer daytime period for that day if available
+        const cur = dayMap.get(k);
+        if (cur && !cur.isDaytime && p.isDaytime) dayMap.set(k, p);
+      }
+      if (dayMap.size >= 3) break;
+    }
+
+    const days = Array.from(dayMap.entries()).slice(0, 3);
+
+    // Gusts: pull max windGust for each of the next 3 dates from grid data
+    // windGust is typically in knots or mph depending—NWS grid often uses "knots" or "mph" depending on element.
+    // We'll assume it's in knots? Actually NWS grid uses SI for many elements; windGust is typically in knots.
+    // To keep it simple and honest, we’ll display "gusts: X" with unit if provided.
+    const gustSeries = grid?.properties?.windGust?.values || [];
+    const gustUom = grid?.properties?.windGust?.uom || ""; // e.g. "unit:knots"
+
+    function uomLabel(uom){
+      if (uom.includes("knots")) return "kt";
+      if (uom.includes("m_s-1")) return "m/s";
+      if (uom.includes("mph")) return "mph";
+      return ""; // unknown
+    }
+    const gustUnit = uomLabel(gustUom);
+
+    const gustByDay = new Map(); // dayKey -> max gust (numeric)
+    for (const v of gustSeries) {
+      const startISO = v.validTime.split("/")[0];
+      const start = new Date(startISO);
+      if (start < now) continue;
+
+      const k = dayKeyNY(start);
+      if (!dayMap.has(k)) continue; // only for our 3 days
+
+      const val = (typeof v.value === "number") ? v.value : null;
+      if (val === null) continue;
+
+      const prev = gustByDay.get(k);
+      gustByDay.set(k, (prev === undefined) ? val : Math.max(prev, val));
+    }
+
+    // Render
+    forecastWrap.innerHTML = "";
+    for (const [k, p] of days) {
+      const pop = (p.probabilityOfPrecipitation && typeof p.probabilityOfPrecipitation.value === "number")
+        ? `${Math.round(p.probabilityOfPrecipitation.value)}%`
+        : "—";
+
+      const gustVal = gustByDay.get(k);
+      const gustText = (gustVal !== undefined) ? `${Math.round(gustVal)}${gustUnit ? " " + gustUnit : ""}` : "—";
+
+      const html = `
+        <div class="fcard">
+          <div class="fday">${p.name || "Forecast"}</div>
+          <div class="frow">
+            <img class="ficon" src="${p.icon}" alt="">
+            <div class="fmeta">
+              <div><b>PoP:</b> ${pop}</div>
+              <div><b>Wind:</b> ${windStr(p.windDirection, p.windSpeed)}</div>
+              <div><b>Gusts:</b> ${gustText}</div>
+            </div>
+          </div>
+        </div>
+      `;
+      forecastWrap.insertAdjacentHTML("beforeend", html);
+    }
+  } catch (e) {
+    forecastWrap.innerHTML = `<div class="small">Forecast load failed.</div>`;
+  }
+}
       // ---------- Run ----------
       // Time: render continuously, resync periodically
       syncTime().finally(() => {
@@ -162,6 +293,9 @@
         setInterval(syncTime, 10 * 60 * 1000);   // resync every 10 min
       });
 
+      syncForecast3Day();
+setInterval(syncForecast3Day, 30 * 60 * 1000); // refresh forecast every 30 minutes
+      
       // Temp: sync now + every 10 minutes
       syncTemp();
       setInterval(syncTemp, 10 * 60 * 1000);
