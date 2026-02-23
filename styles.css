@@ -1,4 +1,8 @@
-/* Clean slate: black background, Calibri, gold text */
+/* ================================
+   CLEAN MINIMAL STYLE
+   Black / Gold / White
+   ================================ */
+
 html, body {
   height: 100%;
 }
@@ -6,28 +10,41 @@ html, body {
 body {
   margin: 0;
   background: #000;
-  color: #d4af37; /* gold */
+  color: #d4af37; /* GOLD default */
   font-family: Calibri, "Segoe UI", Arial, sans-serif;
 }
 
+/* Layout */
 .wrap {
   max-width: 900px;
   margin: 0 auto;
   padding: 48px 20px;
 }
 
-h1 {
-  margin: 0 0 14px 0;
+/* White headline (NEW) */
+.brand {
+  color: #ffffff;
   font-size: 42px;
-  font-weight: 700; /* bold heading */
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin: 0 0 6px 0;
+}
+
+/* Gold location line */
+h1 {
+  margin: 0 0 18px 0;
+  font-size: 42px;
+  font-weight: 700;
   letter-spacing: 0.5px;
 }
 
+/* Panel */
 .panel {
   border: 1px solid rgba(212, 175, 55, 0.35);
   padding: 18px;
 }
 
+/* Flex row */
 .row {
   display: flex;
   gap: 28px;
@@ -44,40 +61,46 @@ h1 {
   text-align: right;
 }
 
+/* Labels now WHITE for contrast */
 .label {
   font-size: 14px;
-  font-weight: 700; /* bold labels */
-  opacity: 0.95;
+  font-weight: 700;
+  color: #ffffff;
   margin-bottom: 8px;
 }
 
+/* Digital clock */
 .clock {
   font-size: 44px;
-  font-weight: 700; /* bold time */
+  font-weight: 700;
   letter-spacing: 1px;
   line-height: 1.05;
 }
 
+/* Date */
 .date {
   margin-top: 6px;
   font-size: 16px;
-  font-weight: 300; /* light body */
-  opacity: 0.95;
+  font-weight: 300;
+  color: #ffffff;
 }
 
+/* Temperature */
 .temp {
   font-size: 32px;
   font-weight: 700;
-  letter-spacing: 0.5px;
 }
 
+/* Small info text */
 .small {
   margin-top: 6px;
   font-size: 12px;
-  font-weight: 300; /* light body */
-  opacity: 0.85;
+  font-weight: 300;
+  color: #ffffff;
+  opacity: 0.9;
 }
 
+/* Status line */
 .status {
   margin-top: 14px;
   border-top: 1px solid rgba(212, 175, 55, 0.20);
