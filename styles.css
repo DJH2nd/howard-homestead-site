@@ -106,3 +106,48 @@ h1 {
   border-top: 1px solid rgba(212, 175, 55, 0.20);
   padding-top: 10px;
 }
+
+.forecast{
+  display:flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.fcard{
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  padding: 12px;
+  min-width: 220px;
+  flex: 1 1 220px;
+}
+
+.fday{
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+
+.frow{
+  display:flex;
+  gap: 10px;
+  align-items:center;
+}
+
+.ficon{
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+.fmeta{
+  font-weight: 300;
+  color: #ffffff;
+  opacity: 0.95;
+  line-height: 1.35;
+}
+
+.fmeta b{
+  font-weight: 700;
+  color: #ffffff;
+}
