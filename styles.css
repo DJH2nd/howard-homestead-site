@@ -107,30 +107,29 @@ h1 {
   padding-top: 10px;
 }
 
-.forecast{
-  display:flex;
-  gap: 12px;
-  flex-wrap: wrap;
+/* 3-day forecast layout: clean grid, no weird wrapping */
+.forecastGrid{
   margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .fcard{
   border: 1px solid rgba(212, 175, 55, 0.28);
   padding: 12px;
-  min-width: 220px;
-  flex: 1 1 220px;
 }
 
 .fday{
   font-weight: 700;
   color: #ffffff;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .frow{
   display:flex;
   gap: 10px;
-  align-items:center;
+  align-items:flex-start;
 }
 
 .ficon{
@@ -150,4 +149,19 @@ h1 {
 .fmeta b{
   font-weight: 700;
   color: #ffffff;
+}
+
+/* Hi/Lo line slightly more prominent */
+.fhilow{
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Mobile */
+@media (max-width: 820px){
+  .forecastGrid{
+    grid-template-columns: 1fr;
+  }
 }
