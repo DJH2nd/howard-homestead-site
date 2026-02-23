@@ -10,13 +10,42 @@
 
 <body>
   <!-- Atomic clock bar -->
-  <div class="clockbar">
-    <div class="wrap clockbar__inner">
-      <div class="clockbar__label">Eastern Time (ET)</div>
-      <div class="clockbar__time" id="atomicClock">Syncing…</div>
+<div class="clockbar">
+  <div class="wrap clockbar__inner">
+    <div class="clockbar__left">
+      <div class="clockbar__place">FREDONIA, PA 16124</div>
+
+      <div class="clockbar__row">
+        <span class="clockbar__icon" aria-hidden="true">
+          <!-- clock icon -->
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 22a10 10 0 1 0-10-10 10 10 0 0 0 10 10Z" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="clockbar__value" id="atomicClock">Syncing…</span>
+
+        <span class="clockbar__sep">·</span>
+
+        <span class="clockbar__icon" aria-hidden="true">
+          <!-- calendar icon -->
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M8 3v3M16 3v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M4 7h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M6 5h12a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"
+                  stroke="currentColor" stroke-width="1.6"/>
+          </svg>
+        </span>
+        <span class="clockbar__temp" id="zipTemp">—°F</span>
+      </div>
+    </div>
+
+    <div class="clockbar__right">
+      <div class="clockbar__pill">ET</div>
       <div class="clockbar__status" id="atomicStatus">—</div>
     </div>
   </div>
+</div>
 
   <header class="top">
     <div class="wrap">
