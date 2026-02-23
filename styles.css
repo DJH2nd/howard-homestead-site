@@ -1,0 +1,85 @@
+/* Clean slate: black background, Calibri, gold text */
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #000;
+  color: #d4af37; /* gold */
+  font-family: Calibri, "Segoe UI", Arial, sans-serif;
+}
+
+.wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 20px;
+}
+
+h1 {
+  margin: 0 0 14px 0;
+  font-size: 42px;
+  font-weight: 700; /* bold heading */
+  letter-spacing: 0.5px;
+}
+
+.panel {
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  padding: 18px;
+}
+
+.row {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.block {
+  min-width: 260px;
+}
+
+.right {
+  text-align: right;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 700; /* bold labels */
+  opacity: 0.95;
+  margin-bottom: 8px;
+}
+
+.clock {
+  font-size: 44px;
+  font-weight: 700; /* bold time */
+  letter-spacing: 1px;
+  line-height: 1.05;
+}
+
+.date {
+  margin-top: 6px;
+  font-size: 16px;
+  font-weight: 300; /* light body */
+  opacity: 0.95;
+}
+
+.temp {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.small {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 300; /* light body */
+  opacity: 0.85;
+}
+
+.status {
+  margin-top: 14px;
+  border-top: 1px solid rgba(212, 175, 55, 0.20);
+  padding-top: 10px;
+}
