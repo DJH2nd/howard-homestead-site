@@ -3,225 +3,163 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>The Howard Homestead</title>
-  <meta name="description" content="The Howard Homestead — goods and services from our homestead in northwest Pennsylvania." />
+  <title>Fredonia Hub</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
-  <!-- Atomic clock bar -->
-<div class="clockbar">
-  <div class="wrap clockbar__inner">
-    <div class="clockbar__left">
-      <div class="clockbar__place">FREDONIA, PA 16124</div>
-
-      <div class="clockbar__row">
-        <span class="clockbar__icon" aria-hidden="true">
-          <!-- clock icon -->
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M12 22a10 10 0 1 0-10-10 10 10 0 0 0 10 10Z" stroke="currentColor" stroke-width="1.6"/>
-            <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </span>
-        <span class="clockbar__value" id="atomicClock">Syncing…</span>
-
-        <span class="clockbar__sep">·</span>
-
-        <span class="clockbar__icon" aria-hidden="true">
-          <!-- calendar icon -->
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M8 3v3M16 3v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-            <path d="M4 7h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-            <path d="M6 5h12a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"
-                  stroke="currentColor" stroke-width="1.6"/>
-          </svg>
-        </span>
-        <span class="clockbar__temp" id="zipTemp">—°F</span>
-      </div>
-    </div>
-
-    <div class="clockbar__right">
-      <div class="clockbar__pill">ET</div>
-      <div class="clockbar__status" id="atomicStatus">—</div>
-    </div>
-  </div>
-</div>
-
-  <header class="top">
-    <div class="wrap">
-      <div class="brand">
-        <a class="brand__name" href="/">The Howard Homestead</a>
-        <div class="brand__sub">Northwest Pennsylvania · Stewardship · Craftsmanship · Integrity</div>
-      </div>
-
-      <nav class="nav">
-        <a href="#about">About</a>
-        <a href="#offerings">Offerings</a>
-        <a href="#contact">Contact</a>
-      </nav>
-    </div>
-  </header>
-
   <main class="wrap">
-    <section class="hero">
-      <p class="kicker">A family-run homestead enterprise</p>
-      <h1>Simple, durable work — and goods made with care.</h1>
-      <p class="lede">
-        The Howard Homestead is the umbrella for what we raise, build, and produce here.
-        If it doesn’t meet our standard, it doesn’t go out the door.
-      </p>
+    <h1>FREDONIA, PA 16124</h1>
 
-      <div class="cta">
-        <a class="btn" href="#offerings">See offerings</a>
-        <a class="btn btn--ghost" href="#contact">Get in touch</a>
-      </div>
-
-      <div class="chips">
-        <span class="chip">Local pickup</span>
-        <span class="chip">Local service</span>
-        <span class="chip">Seasonal inventory</span>
-        <span class="chip">Built to last</span>
-      </div>
-    </section>
-
-    <section id="offerings" class="section">
-      <h2>Offerings</h2>
-      <div class="grid">
-        <article class="card">
-          <h3>Desiree’s Home Bakery</h3>
-          <p>Fresh baked goods and seasonal specials. Local pickup.</p>
-          <p class="muted">Link the bakery later when it’s ready.</p>
-        </article>
-
-        <article class="card">
-          <h3>Homestead Goods</h3>
-          <p>Eggs, firewood, seasonal goods, and small-batch handmade items.</p>
-          <p class="muted">Inventory will be posted as it’s available.</p>
-        </article>
-
-        <article class="card">
-          <h3>Contracting & Property Services</h3>
-          <p>Practical work. Clean results. Clear communication.</p>
-          <p class="muted">Use the contact section for inquiries for now.</p>
-        </article>
-      </div>
-    </section>
-
-    <section id="about" class="section">
-      <h2>What “homestead-rooted” means</h2>
-      <div class="two">
-        <div class="card card--flat">
-          <p>
-            We’re not a random bundle of side gigs. The homestead is the source.
-            Whether it’s food, goods, or services—our standard is the same:
-            <strong>stewardship, craftsmanship, integrity</strong>, and leaving things better than we found them.
-          </p>
-        </div>
-        <div class="card card--flat">
-          <ul class="list">
-            <li>Clear expectations and fair pricing</li>
-            <li>Work done carefully, not hurried</li>
-            <li>Seasonal rhythm (we don’t pretend it’s not winter)</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <section id="contact" class="section">
-      <h2>Contact</h2>
-      <div class="card">
-        <p class="muted">
-          Add your preferred contact method here (email, phone, or a simple form).
-          For now, keep it private—don’t publish personal numbers unless you want them public.
-        </p>
-
-        <div class="contact">
-          <div>
-            <div class="label">Email</div>
-            <div class="value">CONTACT_EMAIL_PLACEHOLDER</div>
-          </div>
-          <div>
-            <div class="label">Service Area</div>
-            <div class="value">Northwest Pennsylvania & nearby Ohio</div>
-          </div>
+    <section class="panel" aria-label="Time and weather">
+      <div class="row">
+        <div class="block">
+          <div class="label">Eastern Standard Time</div>
+          <div class="clock" id="clockTime">--:--</div>
+          <div class="date" id="clockDate">Loading date…</div>
         </div>
 
-        <p class="fine">
-          © <span id="y"></span> The Howard Homestead
-        </p>
+        <div class="block right">
+          <div class="label">Current Temp (16124)</div>
+          <div class="temp" id="tempF">--°F</div>
+          <div class="small" id="tempMeta">Syncing…</div>
+        </div>
       </div>
+
+      <div class="small status" id="syncStatus">Syncing time…</div>
     </section>
   </main>
 
   <script>
-    document.getElementById("y").textContent = new Date().getFullYear();
+    (function () {
+      // ---------- Time ("atomic" via internet sync) ----------
+      const timeEl = document.getElementById("clockTime");
+      const dateEl = document.getElementById("clockDate");
+      const syncEl = document.getElementById("syncStatus");
 
-    // "Atomic" clock: sync offset from a network time source, display ET to the minute.
-    // Uses a public time endpoint; keeps ticking using the stored offset.
-    (() => {
-      const clockEl = document.getElementById("atomicClock");
-      const statusEl = document.getElementById("atomicStatus");
+      let offsetMs = 0;      // serverTime - localTime
+      let lastTimeSync = 0;
 
-      let offsetMs = 0;     // serverTime - localTime
-      let lastSync = null;
-
-      function formatET(date) {
-        // Show "Mon, Feb 23, 2026 · 12:34 PM ET"
-        const parts = new Intl.DateTimeFormat("en-US", {
+      function formatTimeToMinute(d){
+        return new Intl.DateTimeFormat("en-US", {
           timeZone: "America/New_York",
-          weekday: "short",
-          month: "short",
-          day: "2-digit",
-          year: "numeric",
-          hour: "numeric",
+          hour: "2-digit",
           minute: "2-digit",
-          hour12: true
-        }).formatToParts(date);
-
-        const get = (type) => parts.find(p => p.type === type)?.value || "";
-        return `${get("weekday")}, ${get("month")} ${get("day")}, ${get("year")} · ${get("hour")}:${get("minute")} ${get("dayPeriod")} ET`;
+          hour12: false
+        }).format(d);
       }
 
-      function render() {
+      function formatDate(d){
+        return new Intl.DateTimeFormat("en-US", {
+          timeZone: "America/New_York",
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric"
+        }).format(d);
+      }
+
+      function renderTime(){
         const now = new Date(Date.now() + offsetMs);
+        timeEl.textContent = formatTimeToMinute(now);
+        dateEl.textContent = formatDate(now);
 
-        // Only show to the minute (ignore seconds)
-        clockEl.textContent = formatET(now);
-
-        if (lastSync) {
-          const ageSec = Math.floor((Date.now() - lastSync) / 1000);
-          statusEl.textContent = `synced ${ageSec}s ago`;
-        } else {
-          statusEl.textContent = "syncing…";
+        if (lastTimeSync) {
+          const ageSec = Math.floor((Date.now() - lastTimeSync) / 1000);
+          syncEl.textContent = `Time synced ${ageSec}s ago`;
         }
       }
 
-      async function sync() {
+      async function syncTime(){
+        // Primary: worldtimeapi.org
+        // Fallback: timeapi.world
         try {
-          // worldtimeapi supports timezone-specific response including unixtime
-          // If this endpoint ever fails, the clock will still tick from prior offset.
-          const res = await fetch("https://worldtimeapi.org/api/timezone/America/New_York", { cache: "no-store" });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const data = await res.json();
-
-          // unixtime is seconds since epoch; compute offset vs local clock
-          const serverMs = (data.unixtime * 1000);
+          const r = await fetch("https://worldtimeapi.org/api/timezone/America/New_York", { cache: "no-store" });
+          if (!r.ok) throw new Error("worldtimeapi HTTP " + r.status);
+          const j = await r.json();
+          const serverMs = (j.unixtime * 1000);
           offsetMs = serverMs - Date.now();
-          lastSync = Date.now();
-          statusEl.textContent = "synced";
-        } catch (e) {
-          statusEl.textContent = "sync failed (using local)";
-          // offset remains whatever we had; if none, it'll behave like local time.
+          lastTimeSync = Date.now();
+          return;
+        } catch (e1) {
+          try {
+            const r2 = await fetch("https://gateway.timeapi.world/timezone/America/New_York", { cache: "no-store" });
+            if (!r2.ok) throw new Error("timeapi.world HTTP " + r2.status);
+            const j2 = await r2.json();
+            const serverMs = (j2.unixtime * 1000);
+            offsetMs = serverMs - Date.now();
+            lastTimeSync = Date.now();
+            return;
+          } catch (e2) {
+            syncEl.textContent = "Time sync failed (showing device time)";
+            offsetMs = 0;
+          }
         }
       }
 
-      // Initial sync, then refresh every 10 minutes
-      sync();
-      setInterval(sync, 10 * 60 * 1000);
+      // ---------- Temperature (16124 → geocode → current temp) ----------
+      const tempEl = document.getElementById("tempF");
+      const tempMetaEl = document.getElementById("tempMeta");
 
-      // Update display every 1 second (even though we show only minute precision)
-      render();
-      setInterval(render, 1000);
+      let lastTempSync = 0;
+      let cachedLat = null;
+      let cachedLon = null;
+      let cachedName = "16124";
+
+      async function geocodeZip(){
+        // Open-Meteo geocoding: searching postal code as "name"
+        const url = "https://geocoding-api.open-meteo.com/v1/search?name=16124&count=1&language=en&format=json&country=US";
+        const r = await fetch(url, { cache: "no-store" });
+        if (!r.ok) throw new Error("Geocode HTTP " + r.status);
+        const j = await r.json();
+        const loc = j && j.results && j.results[0];
+        if (!loc) throw new Error("No geocode result for 16124");
+        cachedLat = loc.latitude;
+        cachedLon = loc.longitude;
+        cachedName = loc.name || "16124";
+      }
+
+      async function syncTemp(){
+        try {
+          if (cachedLat === null || cachedLon === null) {
+            await geocodeZip();
+          }
+          const url =
+            "https://api.open-meteo.com/v1/forecast" +
+            `?latitude=${encodeURIComponent(cachedLat)}` +
+            `&longitude=${encodeURIComponent(cachedLon)}` +
+            "&current=temperature_2m" +
+            "&temperature_unit=fahrenheit" +
+            "&timezone=America%2FNew_York";
+
+          const r = await fetch(url, { cache: "no-store" });
+          if (!r.ok) throw new Error("Weather HTTP " + r.status);
+          const j = await r.json();
+          const t = j && j.current && j.current.temperature_2m;
+
+          if (typeof t === "number") {
+            tempEl.textContent = `${Math.round(t)}°F`;
+            lastTempSync = Date.now();
+            tempMetaEl.textContent = `Synced · ${cachedName}`;
+          } else {
+            tempMetaEl.textContent = "Temp unavailable";
+          }
+        } catch (e) {
+          tempMetaEl.textContent = "Temp sync failed";
+        }
+      }
+
+      // ---------- Run ----------
+      // Time: render continuously, resync periodically
+      syncTime().finally(() => {
+        renderTime();
+        setInterval(renderTime, 1000);           // smooth updates (still shows minute precision)
+        setInterval(syncTime, 10 * 60 * 1000);   // resync every 10 min
+      });
+
+      // Temp: sync now + every 10 minutes
+      syncTemp();
+      setInterval(syncTemp, 10 * 60 * 1000);
     })();
   </script>
 </body>
