@@ -4,302 +4,152 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Fredonia Hub</title>
-  <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    html, body { height:100%; }
+    body {
+      margin:0;
+      background:#000;
+      color:#d4af37;
+      font-family: Calibri, "Segoe UI", Arial, sans-serif;
+    }
+    .wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 48px 20px;
+    }
+    .brand {
+      color:#fff;
+      font-size:42px;
+      font-weight:700;
+      margin-bottom:4px;
+    }
+    h1 {
+      font-size:42px;
+      font-weight:700;
+      margin:0 0 18px 0;
+    }
+    .panel {
+      border:1px solid rgba(212,175,55,.35);
+      padding:18px;
+      margin-bottom:14px;
+    }
+    .row {
+      display:flex;
+      justify-content:space-between;
+      gap:24px;
+      flex-wrap:wrap;
+    }
+    .label {
+      color:#fff;
+      font-size:14px;
+      font-weight:700;
+      margin-bottom:6px;
+    }
+    .clock {
+      font-size:44px;
+      font-weight:700;
+      letter-spacing:1px;
+    }
+    .date {
+      color:#fff;
+      font-weight:300;
+      margin-top:6px;
+    }
+    .temp {
+      font-size:32px;
+      font-weight:700;
+      text-align:right;
+    }
+    .small {
+      color:#fff;
+      font-size:12px;
+      font-weight:300;
+      opacity:.9;
+    }
+    .forecastGrid {
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:12px;
+      margin-top:10px;
+    }
+    .fcard {
+      border:1px solid rgba(212,175,55,.28);
+      padding:12px;
+    }
+    .fday {
+      color:#fff;
+      font-weight:700;
+      margin-bottom:8px;
+    }
+    .frow {
+      display:flex;
+      gap:10px;
+    }
+    .ficon {
+      width:56px;
+      height:56px;
+      border:1px solid rgba(212,175,55,.25);
+    }
+    .fmeta {
+      color:#fff;
+      font-weight:300;
+      line-height:1.35;
+    }
+    .fhilow {
+      font-weight:700;
+      margin-bottom:4px;
+    }
+    @media (max-width:800px){
+      .forecastGrid { grid-template-columns:1fr; }
+      .temp { text-align:left; }
+    }
+  </style>
 </head>
 
 <body>
   <main class="wrap">
-   <div class="brand">The Howard Homestead LLC</div>
-<h1>FREDONIA, PA 16124</h1>
+    <div class="brand">The Howard Homestead LLC</div>
+    <h1>FREDONIA, PA 16124</h1>
 
-    <section class="panel" aria-label="Time and weather">
+    <section class="panel">
       <div class="row">
-        <div class="block">
-          <div class="label">Eastern Standard Time</div>
-          <div class="clock" id="clockTime">--:--</div>
-          <div class="date" id="clockDate">Loading date…</div>
+        <div>
+          <div class="label">Eastern Time</div>
+          <div class="clock" id="clock">--:--</div>
+          <div class="date" id="date">Loading…</div>
         </div>
-
-        <section class="panel" aria-label="3-day forecast" style="margin-top:14px;">
-  <div class="label">3-Day Forecast</div>
-  <div class="forecast" id="forecast3">
-    <div class="small">Loading forecast…</div>
-  </div>
-</section>
-
-        <div class="block right">
-          <div class="label">Current Temp (16124)</div>
-          <div class="temp" id="tempF">--°F</div>
+        <div>
+          <div class="label">Current Temperature</div>
+          <div class="temp" id="temp">--°F</div>
           <div class="small" id="tempMeta">Syncing…</div>
         </div>
       </div>
+      <div class="small" id="timeStatus" style="margin-top:10px;">Syncing time…</div>
+    </section>
 
-      <div class="small status" id="syncStatus">Syncing time…</div>
+    <section class="panel">
+      <div class="label">3-Day Forecast</div>
+      <div class="forecastGrid" id="forecast">
+        <div class="small">Loading forecast…</div>
+      </div>
     </section>
   </main>
 
-  <script>
-    (function () {
-      // ---------- Time ("atomic" via internet sync) ----------
-      const timeEl = document.getElementById("clockTime");
-      const dateEl = document.getElementById("clockDate");
-      const syncEl = document.getElementById("syncStatus");
+<script>
+(async () => {
+  /* ---------- TIME (atomic via time.now) ---------- */
+  const clockEl = document.getElementById("clock");
+  const dateEl  = document.getElementById("date");
+  const timeStatus = document.getElementById("timeStatus");
+  let offset = 0;
 
-      let offsetMs = 0;      // serverTime - localTime
-      let lastTimeSync = 0;
-
-      function formatTimeToMinute(d){
-        return new Intl.DateTimeFormat("en-US", {
-          timeZone: "America/New_York",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false
-        }).format(d);
-      }
-
-      function formatDate(d){
-        return new Intl.DateTimeFormat("en-US", {
-          timeZone: "America/New_York",
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric"
-        }).format(d);
-      }
-
-      function renderTime(){
-        const now = new Date(Date.now() + offsetMs);
-        timeEl.textContent = formatTimeToMinute(now);
-        dateEl.textContent = formatDate(now);
-
-        if (lastTimeSync) {
-          const ageSec = Math.floor((Date.now() - lastTimeSync) / 1000);
-          syncEl.textContent = `Time synced ${ageSec}s ago`;
-        }
-      }
-
-      async function syncTime(){
-  // Time.Now (free, CORS-enabled, “atomic synchronized”)
-  // Docs: https://time.now/developer/api/timezone/America/New_York
-  try {
-    const r = await fetch("https://time.now/developer/api/timezone/America/New_York", { cache: "no-store" });
-    if (!r.ok) throw new Error("time.now HTTP " + r.status);
-    const j = await r.json();
-
-    // j.unixtime is seconds since epoch
-    const serverMs = (j.unixtime * 1000);
-    offsetMs = serverMs - Date.now();
-    lastTimeSync = Date.now();
-
-    // Optional: show abbreviation (EST/EDT) in the status line
-    // This keeps your label "Eastern Standard Time" as requested,
-    // while still showing what's actually active right now.
-    const abbr = j.abbreviation ? ` (${j.abbreviation})` : "";
-    syncEl.textContent = "Time synced" + abbr;
-  } catch (e) {
-    syncEl.textContent = "Time sync failed (showing device time)";
-    offsetMs = 0;
-  }
-}
-
-      // ---------- Temperature (16124 → geocode → current temp) ----------
-      const tempEl = document.getElementById("tempF");
-      const tempMetaEl = document.getElementById("tempMeta");
-
-      let lastTempSync = 0;
-      let cachedLat = null;
-      let cachedLon = null;
-      let cachedName = "16124";
-
-      async function geocodeZip(){
-        // Open-Meteo geocoding: searching postal code as "name"
-        const url = "https://geocoding-api.open-meteo.com/v1/search?name=16124&count=1&language=en&format=json&country=US";
-        const r = await fetch(url, { cache: "no-store" });
-        if (!r.ok) throw new Error("Geocode HTTP " + r.status);
-        const j = await r.json();
-        const loc = j && j.results && j.results[0];
-        if (!loc) throw new Error("No geocode result for 16124");
-        cachedLat = loc.latitude;
-        cachedLon = loc.longitude;
-        cachedName = loc.name || "16124";
-      }
-
-      async function syncTemp(){
-        try {
-          if (cachedLat === null || cachedLon === null) {
-            await geocodeZip();
-          }
-          const url =
-            "https://api.open-meteo.com/v1/forecast" +
-            `?latitude=${encodeURIComponent(cachedLat)}` +
-            `&longitude=${encodeURIComponent(cachedLon)}` +
-            "&current=temperature_2m" +
-            "&temperature_unit=fahrenheit" +
-            "&timezone=America%2FNew_York";
-
-          const r = await fetch(url, { cache: "no-store" });
-          if (!r.ok) throw new Error("Weather HTTP " + r.status);
-          const j = await r.json();
-          const t = j && j.current && j.current.temperature_2m;
-
-          if (typeof t === "number") {
-            tempEl.textContent = `${Math.round(t)}°F`;
-            lastTempSync = Date.now();
-            tempMetaEl.textContent = `Synced · ${cachedName}`;
-          } else {
-            tempMetaEl.textContent = "Temp unavailable";
-          }
-        } catch (e) {
-          tempMetaEl.textContent = "Temp sync failed";
-        }
-      }
-
-      // ---------- 3-day Forecast (NWS) w/ icons + PoP + wind + gusts ----------
-const forecastWrap = document.getElementById("forecast3");
-
-function windStr(dir, speed){
-  // NWS gives windDirection like "NW" and windSpeed like "10 to 15 mph"
-  const d = dir ? String(dir).trim() : "";
-  const s = speed ? String(speed).trim() : "";
-  return (d || s) ? `${d} ${s}`.trim() : "—";
-}
-
-async function fetchJSON(url){
-  const r = await fetch(url, {
-    cache: "no-store",
-    headers: {
-      "Accept": "application/geo+json"
-    }
-  });
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  return r.json();
-}
-
-function dayKeyNY(dateObj){
-  // Bucket by NY local date
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/New_York",
-    year: "numeric", month: "2-digit", day: "2-digit"
-  }).formatToParts(dateObj);
-  const get = t => parts.find(p=>p.type===t)?.value || "";
-  return `${get("year")}-${get("month")}-${get("day")}`;
-}
-
-async function syncForecast3Day(){
-  try {
-    // Reuse the same geocoded lat/lon used for the temperature
-    if (cachedLat === null || cachedLon === null) {
-      await geocodeZip();
-    }
-
-    // NWS "points" gives us the correct grid + forecast endpoints
-    const point = await fetchJSON(`https://api.weather.gov/points/${cachedLat},${cachedLon}`);
-    const forecastUrl = point.properties.forecast;
-    const gridUrl = point.properties.forecastGridData;
-
-    const [forecast, grid] = await Promise.all([
-      fetchJSON(forecastUrl),
-      fetchJSON(gridUrl)
-    ]);
-
-    const periods = forecast?.properties?.periods || [];
-    if (!periods.length) throw new Error("No forecast periods");
-
-    // Build 3-day cards using the next 3 distinct dates (NY time)
-    const now = new Date();
-    const dayMap = new Map(); // dayKey -> representative period (prefer daytime)
-    for (const p of periods) {
-      const start = new Date(p.startTime);
-      if (start < now) continue;
-
-      const k = dayKeyNY(start);
-      if (!dayMap.has(k)) {
-        dayMap.set(k, p);
-      } else {
-        // Prefer daytime period for that day if available
-        const cur = dayMap.get(k);
-        if (cur && !cur.isDaytime && p.isDaytime) dayMap.set(k, p);
-      }
-      if (dayMap.size >= 3) break;
-    }
-
-    const days = Array.from(dayMap.entries()).slice(0, 3);
-
-    // Gusts: pull max windGust for each of the next 3 dates from grid data
-    // windGust is typically in knots or mph depending—NWS grid often uses "knots" or "mph" depending on element.
-    // We'll assume it's in knots? Actually NWS grid uses SI for many elements; windGust is typically in knots.
-    // To keep it simple and honest, we’ll display "gusts: X" with unit if provided.
-    const gustSeries = grid?.properties?.windGust?.values || [];
-    const gustUom = grid?.properties?.windGust?.uom || ""; // e.g. "unit:knots"
-
-    function uomLabel(uom){
-      if (uom.includes("knots")) return "kt";
-      if (uom.includes("m_s-1")) return "m/s";
-      if (uom.includes("mph")) return "mph";
-      return ""; // unknown
-    }
-    const gustUnit = uomLabel(gustUom);
-
-    const gustByDay = new Map(); // dayKey -> max gust (numeric)
-    for (const v of gustSeries) {
-      const startISO = v.validTime.split("/")[0];
-      const start = new Date(startISO);
-      if (start < now) continue;
-
-      const k = dayKeyNY(start);
-      if (!dayMap.has(k)) continue; // only for our 3 days
-
-      const val = (typeof v.value === "number") ? v.value : null;
-      if (val === null) continue;
-
-      const prev = gustByDay.get(k);
-      gustByDay.set(k, (prev === undefined) ? val : Math.max(prev, val));
-    }
-
-    // Render
-    forecastWrap.innerHTML = "";
-    for (const [k, p] of days) {
-      const pop = (p.probabilityOfPrecipitation && typeof p.probabilityOfPrecipitation.value === "number")
-        ? `${Math.round(p.probabilityOfPrecipitation.value)}%`
-        : "—";
-
-      const gustVal = gustByDay.get(k);
-      const gustText = (gustVal !== undefined) ? `${Math.round(gustVal)}${gustUnit ? " " + gustUnit : ""}` : "—";
-
-      const html = `
-        <div class="fcard">
-          <div class="fday">${p.name || "Forecast"}</div>
-          <div class="frow">
-            <img class="ficon" src="${p.icon}" alt="">
-            <div class="fmeta">
-              <div><b>PoP:</b> ${pop}</div>
-              <div><b>Wind:</b> ${windStr(p.windDirection, p.windSpeed)}</div>
-              <div><b>Gusts:</b> ${gustText}</div>
-            </div>
-          </div>
-        </div>
-      `;
-      forecastWrap.insertAdjacentHTML("beforeend", html);
-    }
-  } catch (e) {
-    forecastWrap.innerHTML = `<div class="small">Forecast load failed.</div>`;
-  }
-}
-      // ---------- Run ----------
-      // Time: render continuously, resync periodically
-      syncTime().finally(() => {
-        renderTime();
-        setInterval(renderTime, 1000);           // smooth updates (still shows minute precision)
-        setInterval(syncTime, 10 * 60 * 1000);   // resync every 10 min
-      });
-
-      syncForecast3Day();
-setInterval(syncForecast3Day, 30 * 60 * 1000); // refresh forecast every 30 minutes
-      
-      // Temp: sync now + every 10 minutes
-      syncTemp();
-      setInterval(syncTemp, 10 * 60 * 1000);
-    })();
-  </script>
-</body>
-</html>
+  async function syncTime(){
+    try {
+      const r = await fetch("https://time.now/developer/api/timezone/America/New_York",{cache:"no-store"});
+      const j = await r.json();
+      offset = (j.unixtime * 1000) - Date.now();
+      timeStatus.textContent = "Time synced (" + j.abbreviation + ")";
+    } catch {
+      offset = 0;
+      timeStatus.textContent = "Time sync failed (device
