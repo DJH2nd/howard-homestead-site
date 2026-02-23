@@ -9,6 +9,15 @@
 </head>
 
 <body>
+  <!-- Atomic clock bar -->
+  <div class="clockbar">
+    <div class="wrap clockbar__inner">
+      <div class="clockbar__label">Eastern Time (ET)</div>
+      <div class="clockbar__time" id="atomicClock">Syncing…</div>
+      <div class="clockbar__status" id="atomicStatus">—</div>
+    </div>
+  </div>
+
   <header class="top">
     <div class="wrap">
       <div class="brand">
@@ -17,7 +26,6 @@
       </div>
 
       <nav class="nav">
-        <!-- Keep this minimal. Add links later when you’re ready. -->
         <a href="#about">About</a>
         <a href="#offerings">Offerings</a>
         <a href="#contact">Contact</a>
@@ -98,7 +106,6 @@
           For now, keep it private—don’t publish personal numbers unless you want them public.
         </p>
 
-        <!-- Replace these placeholders when you’re ready -->
         <div class="contact">
           <div>
             <div class="label">Email</div>
@@ -119,6 +126,74 @@
 
   <script>
     document.getElementById("y").textContent = new Date().getFullYear();
+
+    // "Atomic" clock: sync offset from a network time source, display ET to the minute.
+    // Uses a public time endpoint; keeps ticking using the stored offset.
+    (() => {
+      const clockEl = document.getElementById("atomicClock");
+      const statusEl = document.getElementById("atomicStatus");
+
+      let offsetMs = 0;     // serverTime - localTime
+      let lastSync = null;
+
+      function formatET(date) {
+        // Show "Mon, Feb 23, 2026 · 12:34 PM ET"
+        const parts = new Intl.DateTimeFormat("en-US", {
+          timeZone: "America/New_York",
+          weekday: "short",
+          month: "short",
+          day: "2-digit",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true
+        }).formatToParts(date);
+
+        const get = (type) => parts.find(p => p.type === type)?.value || "";
+        return `${get("weekday")}, ${get("month")} ${get("day")}, ${get("year")} · ${get("hour")}:${get("minute")} ${get("dayPeriod")} ET`;
+      }
+
+      function render() {
+        const now = new Date(Date.now() + offsetMs);
+
+        // Only show to the minute (ignore seconds)
+        clockEl.textContent = formatET(now);
+
+        if (lastSync) {
+          const ageSec = Math.floor((Date.now() - lastSync) / 1000);
+          statusEl.textContent = `synced ${ageSec}s ago`;
+        } else {
+          statusEl.textContent = "syncing…";
+        }
+      }
+
+      async function sync() {
+        try {
+          // worldtimeapi supports timezone-specific response including unixtime
+          // If this endpoint ever fails, the clock will still tick from prior offset.
+          const res = await fetch("https://worldtimeapi.org/api/timezone/America/New_York", { cache: "no-store" });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+
+          // unixtime is seconds since epoch; compute offset vs local clock
+          const serverMs = (data.unixtime * 1000);
+          offsetMs = serverMs - Date.now();
+          lastSync = Date.now();
+          statusEl.textContent = "synced";
+        } catch (e) {
+          statusEl.textContent = "sync failed (using local)";
+          // offset remains whatever we had; if none, it'll behave like local time.
+        }
+      }
+
+      // Initial sync, then refresh every 10 minutes
+      sync();
+      setInterval(sync, 10 * 60 * 1000);
+
+      // Update display every 1 second (even though we show only minute precision)
+      render();
+      setInterval(render, 1000);
+    })();
   </script>
 </body>
 </html>
