@@ -27,12 +27,14 @@
         <div class="label">Current Conditions (16124)</div>
         <div class="temp" id="tempF">--°F</div>
 
-        <div class="small" style="margin-top:6px;">
-          Humidity: <span id="rh">--</span>%<br/>
-          Wind: <span id="windNow">--</span>
+        <div class="small" style="margin-top:8px; line-height:1.45;">
+          <div><span style="color:#fff;">Conditions:</span> <span id="condText">--</span></div>
+          <div><span style="color:#fff;">Humidity:</span> <span id="rh">--</span>%</div>
+          <div><span style="color:#fff;">Wind:</span> <span id="windNow">--</span></div>
+          <div><span style="color:#fff;">Moon:</span> <span id="moonText">--</span></div>
         </div>
 
-        <div class="small" id="tempMeta" style="margin-top:6px;">Syncing…</div>
+        <div class="small" id="tempMeta" style="margin-top:8px;">Syncing…</div>
       </div>
 
     </div>
@@ -53,7 +55,7 @@
 <script>
 (function(){
 
-/* ================= CLOCK ================= */
+/* ================= CLOCK (internet synced) ================= */
 const timeEl = document.getElementById("clockTime");
 const dateEl = document.getElementById("clockDate");
 const syncEl = document.getElementById("syncStatus");
@@ -62,7 +64,7 @@ let offsetMs = 0;
 let lastTimeSync = 0;
 
 function formatTime(d){
-  // 12-hour time with AM/PM
+  // 12-hour, AM/PM (non-military)
   return new Intl.DateTimeFormat("en-US",{
     timeZone:"America/New_York",
     hour:"numeric",
@@ -122,11 +124,68 @@ const tempEl = document.getElementById("tempF");
 const tempMetaEl = document.getElementById("tempMeta");
 const rhEl = document.getElementById("rh");
 const windNowEl = document.getElementById("windNow");
+const condEl = document.getElementById("condText");
+const moonEl = document.getElementById("moonText");
 
 function degToCardinal(deg){
   if (deg === null || deg === undefined || Number.isNaN(deg)) return "—";
   const dirs = ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
   return dirs[Math.round(deg / 22.5) % 16];
+}
+
+// WMO Weather interpretation codes (Open-Meteo uses these) :contentReference[oaicite:1]{index=1}
+function wmoToText(code){
+  const c = Number(code);
+  if (Number.isNaN(c)) return "—";
+  if (c === 0) return "Clear";
+  if (c === 1) return "Mainly Clear";
+  if (c === 2) return "Partly Cloudy";
+  if (c === 3) return "Overcast";
+  if (c === 45 || c === 48) return "Fog";
+  if (c === 51 || c === 53 || c === 55) return "Drizzle";
+  if (c === 56 || c === 57) return "Freezing Drizzle";
+  if (c === 61) return "Light Rain";
+  if (c === 63) return "Rain";
+  if (c === 65) return "Heavy Rain";
+  if (c === 66 || c === 67) return "Freezing Rain";
+  if (c === 71) return "Light Snow";
+  if (c === 73) return "Snow";
+  if (c === 75) return "Heavy Snow";
+  if (c === 77) return "Snow Grains";
+  if (c === 80) return "Light Rain Showers";
+  if (c === 81) return "Rain Showers";
+  if (c === 82) return "Violent Rain Showers";
+  if (c === 85) return "Light Snow Showers";
+  if (c === 86) return "Heavy Snow Showers";
+  if (c === 95) return "Thunderstorm";
+  if (c === 96 || c === 99) return "Thunderstorm w/ Hail";
+  return "—";
+}
+
+/* ---- Moon phase (local calc; good dashboard approximation) ---- */
+function julianDate(date){
+  return (date.getTime() / 86400000) + 2440587.5;
+}
+function moonPhaseInfo(date){
+  // Reference new moon: 2000-01-06 18:14 UTC ~ JD 2451550.1
+  const jd = julianDate(date);
+  const synodic = 29.530588853;
+  let phase = (jd - 2451550.1) / synodic;
+  phase = phase - Math.floor(phase); // 0..1
+
+  const illum = 0.5 * (1 - Math.cos(2 * Math.PI * phase)); // 0..1
+
+  let name = "New Moon";
+  if (phase < 0.03 || phase > 0.97) name = "New Moon";
+  else if (phase < 0.22) name = "Waxing Crescent";
+  else if (phase < 0.28) name = "First Quarter";
+  else if (phase < 0.47) name = "Waxing Gibbous";
+  else if (phase < 0.53) name = "Full Moon";
+  else if (phase < 0.72) name = "Waning Gibbous";
+  else if (phase < 0.78) name = "Last Quarter";
+  else name = "Waning Crescent";
+
+  return { name, illumPct: Math.round(illum * 100) };
 }
 
 async function syncCurrent(){
@@ -137,7 +196,7 @@ async function syncCurrent(){
       "https://api.open-meteo.com/v1/forecast" +
       `?latitude=${encodeURIComponent(cachedLat)}` +
       `&longitude=${encodeURIComponent(cachedLon)}` +
-      "&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m" +
+      "&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,weather_code" +
       "&temperature_unit=fahrenheit" +
       "&wind_speed_unit=mph" +
       "&timezone=America%2FNew_York";
@@ -146,16 +205,24 @@ async function syncCurrent(){
     if(!r.ok) throw new Error("Weather HTTP " + r.status);
     const j = await r.json();
 
-    const t = j?.current?.temperature_2m;
+    const t  = j?.current?.temperature_2m;
     const rh = j?.current?.relative_humidity_2m;
     const ws = j?.current?.wind_speed_10m;
     const wd = j?.current?.wind_direction_10m;
+    const wc = j?.current?.weather_code;
 
     tempEl.textContent = (typeof t === "number") ? (Math.round(t) + "°F") : "--°F";
     rhEl.textContent = (typeof rh === "number") ? Math.round(rh) : "--";
+    condEl.textContent = wmoToText(wc);
+
     windNowEl.textContent = (typeof ws === "number" && typeof wd === "number")
       ? `${Math.round(ws)} mph ${degToCardinal(wd)}`
       : "--";
+
+    // Moon phase uses synced time (falls back to device time if sync failed)
+    const nowForMoon = new Date(Date.now() + offsetMs);
+    const mp = moonPhaseInfo(nowForMoon);
+    moonEl.textContent = `${mp.name} (${mp.illumPct}%)`;
 
     tempMetaEl.textContent = "Synced";
   }catch(e){
@@ -163,7 +230,7 @@ async function syncCurrent(){
   }
 }
 
-/* ================= FORECAST (NWS + GUSTS FROM GRID) ================= */
+/* ================= FORECAST (NWS + gusts from grid) ================= */
 const forecastWrap = document.getElementById("forecast3");
 
 function windStr(d, s){
@@ -189,12 +256,10 @@ function dayKeyNY(date){
 }
 
 function toMphFrom(uom, value){
-  // NWS grid often uses knots or m/s. Convert to mph when possible.
   if (value === null || value === undefined || Number.isNaN(value)) return null;
-
-  if (uom.includes("knots")) return value * 1.15078;
-  if (uom.includes("m_s-1")) return value * 2.23694;
-  if (uom.includes("mph")) return value;
+  if (String(uom).includes("knots")) return value * 1.15078;
+  if (String(uom).includes("m_s-1")) return value * 2.23694;
+  if (String(uom).includes("mph")) return value;
   return value; // unknown, leave as-is
 }
 
@@ -209,33 +274,32 @@ async function syncForecast(){
     const periods = forecast?.properties?.periods || [];
     if(!periods.length) throw new Error("No forecast periods");
 
-    // Pair day/night for Hi/Lo per date
+    // Pair day/night for Hi/Lo
     const now = new Date();
-    const days = new Map(); // key -> {day, night}
+    const days = new Map();
     for(const p of periods){
       const start = new Date(p.startTime);
       if(start < now) continue;
 
       const k = dayKeyNY(start);
-      if(!days.has(k)) days.set(k,{day:null,night:null});
+      if(!days.has(k)) days.set(k, { day:null, night:null });
       const entry = days.get(k);
 
       if(p.isDaytime && !entry.day) entry.day = p;
       if(!p.isDaytime && !entry.night) entry.night = p;
 
-      // Stop once we have 3 distinct dates and at least one period each
       if(days.size >= 3) {
-        const first3 = Array.from(days.values()).slice(0,3);
-        const ok = first3.every(x => x.day || x.night);
+        const first3 = Array.from(days.entries()).slice(0,3);
+        const ok = first3.every(([_,e]) => e.day || e.night);
         if(ok) break;
       }
     }
 
     const first3 = Array.from(days.entries()).slice(0,3);
 
-    // Gusts from grid: max gust per day, converted to mph when possible
+    // Gusts: max gust per day from grid
     const gustSeries = grid?.properties?.windGust?.values || [];
-    const gustUom = grid?.properties?.windGust?.uom || ""; // e.g. unit:knots
+    const gustUom = grid?.properties?.windGust?.uom || "";
     const gustMaxByDay = new Map();
 
     for(const v of gustSeries){
@@ -244,7 +308,6 @@ async function syncForecast(){
       if(start < now) continue;
 
       const k = dayKeyNY(start);
-      // only for our three keys
       if(!first3.find(([key]) => key === k)) continue;
 
       const raw = (typeof v.value === "number") ? v.value : null;
@@ -255,6 +318,7 @@ async function syncForecast(){
       gustMaxByDay.set(k, (prev === undefined) ? mph : Math.max(prev, mph));
     }
 
+    // Render
     forecastWrap.innerHTML = "";
 
     for(const [k, entry] of first3){
