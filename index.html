@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Fredonia Hub</title>
-<link rel="stylesheet" href="styles.css?v=9" />
+<link rel="stylesheet" href="styles.css?v=10" />
 </head>
 
 <body>
@@ -59,15 +59,27 @@
 <script>
 (function(){
 
-/* ================= ZIP 16124 COORDS (no geocode; more reliable) ================= */
+/* ================= ZIP 16124 COORDS (centroid-ish) ================= */
 const LAT = 41.33336;
 const LON = -80.26486;
 
-/* ================= CLOCK ================= */
+/* ================= DOM ================= */
 const timeEl = document.getElementById("clockTime");
 const dateEl = document.getElementById("clockDate");
 const syncEl = document.getElementById("syncStatus");
 
+const tempEl = document.getElementById("tempF");
+const metaEl = document.getElementById("tempMeta");
+const rhEl = document.getElementById("rh");
+const windEl = document.getElementById("windNow");
+const condEl = document.getElementById("condText");
+const condIconEl = document.getElementById("condIcon");
+const moonTextEl = document.getElementById("moonText");
+const moonIconEl = document.getElementById("moonIcon");
+
+const forecastWrap = document.getElementById("forecast3");
+
+/* ================= CLOCK (internet-synced offset) ================= */
 let offsetMs = 0;
 let lastTimeSync = 0;
 
@@ -115,12 +127,9 @@ async function syncTime(){
   }
 }
 
-/* ================= HELPERS ================= */
-
-<script>
+/* ================= MOON (local calc + base64 SVG) ================= */
 function approxMoonPhase01(date){
-  // Simple synodic cycle approximation: returns 0..1
-  // Reference new moon: 2000-01-06 18:14 UTC (common anchor)
+  // New moon reference: 2000-01-06 18:14 UTC (common anchor)
   const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14, 0);
   const synodicMs = 29.530588853 * 24 * 60 * 60 * 1000;
   const t = date.getTime() - knownNewMoon;
@@ -142,7 +151,6 @@ function moonPhaseName(phase){
 }
 
 function moonSvgBase64(phase){
-  // Base64 SVG data URI for maximum compatibility in <img>. :contentReference[oaicite:1]{index=1}
   const p = Number(phase);
   const shift = Math.cos(2*Math.PI*p); // +1 new, -1 full
   const cx = 50 + (shift * 22);
@@ -163,200 +171,19 @@ function moonSvgBase64(phase){
   const b64 = btoa(unescape(encodeURIComponent(svg)));
   return "data:image/svg+xml;base64," + b64;
 }
-</script>
 
-  
-const tempEl = document.getElementById("tempF");
-const metaEl = document.getElementById("tempMeta");
-const rhEl = document.getElementById("rh");
-const windEl = document.getElementById("windNow");
-const condEl = document.getElementById("condText");
-const condIconEl = document.getElementById("condIcon");
-const moonTextEl = document.getElementById("moonText");
-const moonIconEl = document.getElementById("moonIcon");
+function renderMoon(){
+  const phase = approxMoonPhase01(new Date());
+  moonTextEl.textContent = moonPhaseName(phase);
+  moonIconEl.src = moonSvgBase64(phase);
+}
 
+/* ================= WEATHER (NWS current + forecast + gusts) ================= */
 function degToCardinal(deg){
   if (deg === null || deg === undefined || Number.isNaN(deg)) return "—";
   const dirs=["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
   return dirs[Math.round(deg/22.5)%16];
 }
-
-/* WMO weather codes -> simple text */
-function wmoToText(code){
-  const c = Number(code);
-  if(Number.isNaN(c)) return "—";
-  if(c===0) return "Clear";
-  if(c===1) return "Mainly Clear";
-  if(c===2) return "Partly Cloudy";
-  if(c===3) return "Overcast";
-  if(c===45||c===48) return "Fog";
-  if([51,53,55].includes(c)) return "Drizzle";
-  if([56,57].includes(c)) return "Freezing Drizzle";
-  if(c===61) return "Light Rain";
-  if(c===63) return "Rain";
-  if(c===65) return "Heavy Rain";
-  if([66,67].includes(c)) return "Freezing Rain";
-  if(c===71) return "Light Snow";
-  if(c===73) return "Snow";
-  if(c===75) return "Heavy Snow";
-  if([80,81,82].includes(c)) return "Showers";
-  if([85,86].includes(c)) return "Snow Showers";
-  if(c===95) return "Thunderstorm";
-  if([96,99].includes(c)) return "Thunderstorm w/ Hail";
-  return "—";
-}
-
-/* Use NWS icon set for current conditions (simple mapping) */
-function wmoToNwsIcon(code){
-  const c = Number(code);
-  if(c===0) return "https://api.weather.gov/icons/land/day/skc?size=medium";
-  if(c===1) return "https://api.weather.gov/icons/land/day/few?size=medium";
-  if(c===2) return "https://api.weather.gov/icons/land/day/sct?size=medium";
-  if(c===3) return "https://api.weather.gov/icons/land/day/ovc?size=medium";
-  if(c===45||c===48) return "https://api.weather.gov/icons/land/day/fg?size=medium";
-  if([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(c)) return "https://api.weather.gov/icons/land/day/rain?size=medium";
-  if([71,73,75,85,86].includes(c)) return "https://api.weather.gov/icons/land/day/snow?size=medium";
-  if([95,96,99].includes(c)) return "https://api.weather.gov/icons/land/day/tsra?size=medium";
-  return "https://api.weather.gov/icons/land/day/ovc?size=medium";
-}
-
-/* Moon phase (Open-Meteo gives 0..1) + generated SVG icon */
-function moonPhaseName(phase){
-  const p = Number(phase);
-  if(p < 0.03 || p > 0.97) return "New Moon";
-  if(p < 0.22) return "Waxing Crescent";
-  if(p < 0.28) return "First Quarter";
-  if(p < 0.47) return "Waxing Gibbous";
-  if(p < 0.53) return "Full Moon";
-  if(p < 0.72) return "Waning Gibbous";
-  if(p < 0.78) return "Last Quarter";
-  return "Waning Crescent";
-}
-function moonSvgDataUri(phase){
-  const p = Number(phase);
-  const shift = Math.cos(2*Math.PI*p); // +1 new, -1 full
-  const cx = 50 + (shift * 22);
-  const svg =
-`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <defs>
-    <mask id="m">
-      <rect width="100" height="100" fill="black"/>
-      <circle cx="50" cy="50" r="38" fill="white"/>
-      <circle cx="${cx.toFixed(2)}" cy="50" r="38" fill="black"/>
-    </mask>
-  </defs>
-  <circle cx="50" cy="50" r="38" fill="white" opacity="0.18"/>
-  <circle cx="50" cy="50" r="38" fill="white" mask="url(#m)"/>
-</svg>`;
-  return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
-}
-
-/* ================= CURRENT: Open-Meteo (fallback to NWS if it fails) ================= */
-async function syncCurrent(){
-  // helper to show errors clearly
-  function fail(msg){
-    metaEl.textContent = msg;
-  }
-
-  // 1) Try Open-Meteo
-  try{
-    const url =
-      "https://api.open-meteo.com/v1/forecast" +
-      `?latitude=${encodeURIComponent(LAT)}` +
-      `&longitude=${encodeURIComponent(LON)}` +
-      "&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,weather_code" +
-      "&daily=moon_phase" +
-      "&temperature_unit=fahrenheit" +
-      "&wind_speed_unit=mph" +
-      "&timezone=America%2FNew_York";
-
-    const r = await fetch(url,{cache:"no-store"});
-    if(!r.ok) throw new Error("Open-Meteo HTTP " + r.status);
-    const j = await r.json();
-    if(!j.current) throw new Error("Open-Meteo missing current");
-
-    const c = j.current;
-
-    tempEl.textContent = (typeof c.temperature_2m==="number") ? (Math.round(c.temperature_2m)+"°F") : "--°F";
-    rhEl.textContent   = (typeof c.relative_humidity_2m==="number") ? Math.round(c.relative_humidity_2m) : "--";
-    windEl.textContent = (typeof c.wind_speed_10m==="number" && typeof c.wind_direction_10m==="number")
-      ? `${Math.round(c.wind_speed_10m)} mph ${degToCardinal(c.wind_direction_10m)}`
-      : "--";
-
-    const condText = wmoToText(c.weather_code);
-    condEl.textContent = condText;
-    condIconEl.src = wmoToNwsIcon(c.weather_code);
-
-    const phase = j?.daily?.moon_phase?.[0];
-    if(typeof phase === "number"){
-      moonTextEl.textContent = moonPhaseName(phase);
-      moonIconEl.src = moonSvgDataUri(phase);
-    }else{
-      moonTextEl.textContent = "—";
-      moonIconEl.removeAttribute("src");
-    }
-
-    metaEl.textContent = "Synced (Open-Meteo)";
-    return; // success
-  }catch(e){
-    // continue to fallback
-    fail("Open-Meteo failed: " + (e?.message || "unknown"));
-  }
-
- // 2) Fallback: NWS latest observation + forecast icon
-try {
-  // ... your existing NWS code that sets temp/rh/wind/cond/icon ...
-
-  // ✅ ALWAYS set moon phase + icon in fallback (no API needed)
-  const phase = approxMoonPhase01(new Date());
-  moonTextEl.textContent = moonPhaseName(phase);
-  moonIconEl.src = moonSvgBase64(phase);
-
-  metaEl.textContent = "Synced (NWS fallback)";
-} catch (e) {
-  metaEl.textContent = "Weather failed: " + (e?.message || "unknown");
-}
-
-    const ob = await fetch(firstStation + "/observations/latest", {cache:"no-store", headers:{Accept:"application/geo+json"}});
-    if(!ob.ok) throw new Error("NWS obs HTTP " + ob.status);
-    const obs = await ob.json();
-    const o = obs.properties || {};
-
-    // temp: Celsius -> F
-    const tC = o?.temperature?.value;
-    const tF = (typeof tC==="number") ? (tC*9/5+32) : null;
-    tempEl.textContent = (tF!==null) ? (Math.round(tF)+"°F") : "--°F";
-
-    const rh = o?.relativeHumidity?.value;
-    rhEl.textContent = (typeof rh==="number") ? Math.round(rh) : "--";
-
-    // wind speed is often m/s
-    const ws = o?.windSpeed?.value;
-    const mph = (typeof ws==="number") ? (ws*2.23694) : null;
-    const wd = o?.windDirection?.value;
-    windEl.textContent = (mph!==null && typeof wd==="number") ? `${Math.round(mph)} mph ${degToCardinal(wd)}` : "--";
-
-    // description
-    condEl.textContent = o?.textDescription || "—";
-
-    // icon: use first forecast period icon
-    const fc = await fetch(point.properties.forecast, {cache:"no-store", headers:{Accept:"application/geo+json"}});
-    if(fc.ok){
-      const forecast = await fc.json();
-      const period0 = forecast?.properties?.periods?.[0];
-      if(period0?.icon) condIconEl.src = period0.icon;
-    }
-
-    // moon: keep previous (unknown from NWS here)
-    moonTextEl.textContent = moonTextEl.textContent || "—";
-    metaEl.textContent = "Synced (NWS fallback)";
-  }catch(e){
-    metaEl.textContent = "Weather failed: " + (e?.message || "unknown");
-  }
-}
-
-/* ================= FORECAST (NWS + gusts) ================= */
-const forecastWrap = document.getElementById("forecast3");
 
 async function fetchGeo(url){
   const r = await fetch(url,{cache:"no-store", headers:{Accept:"application/geo+json"}});
@@ -386,9 +213,52 @@ function windStr(dir, speed){
   return (d || s) ? `${d} ${s}`.trim() : "—";
 }
 
-async function syncForecast(){
+async function syncCurrentNWS(){
   try{
     const point = await fetchGeo(`https://api.weather.gov/points/${LAT},${LON}`);
+
+    // stations
+    const st = await fetchGeo(point.properties.observationStations);
+    const firstStation = st?.observationStations?.[0];
+    if(!firstStation) throw new Error("No NWS station found");
+
+    // latest observation
+    const obs = await fetchGeo(firstStation + "/observations/latest");
+    const o = obs.properties || {};
+
+    // temp: C -> F
+    const tC = o?.temperature?.value;
+    const tF = (typeof tC==="number") ? (tC*9/5+32) : null;
+    tempEl.textContent = (tF!==null) ? (Math.round(tF)+"°F") : "--°F";
+
+    // RH
+    const rh = o?.relativeHumidity?.value;
+    rhEl.textContent = (typeof rh==="number") ? Math.round(rh) : "--";
+
+    // wind: m/s -> mph
+    const ws = o?.windSpeed?.value;
+    const mph = (typeof ws==="number") ? (ws*2.23694) : null;
+    const wd = o?.windDirection?.value;
+    windEl.textContent = (mph!==null && typeof wd==="number") ? `${Math.round(mph)} mph ${degToCardinal(wd)}` : "--";
+
+    // conditions text
+    condEl.textContent = o?.textDescription || "—";
+
+    // icon: use first forecast period icon for visuals
+    const fc = await fetchGeo(point.properties.forecast);
+    const period0 = fc?.properties?.periods?.[0];
+    if(period0?.icon) condIconEl.src = period0.icon;
+
+    metaEl.textContent = "Synced (NWS)";
+    return point; // return point so forecast can reuse
+  }catch(e){
+    metaEl.textContent = "Weather failed: " + (e?.message || "unknown");
+    throw e;
+  }
+}
+
+async function syncForecastNWS(point){
+  try{
     const forecast = await fetchGeo(point.properties.forecast);
     const grid = await fetchGeo(point.properties.forecastGridData);
 
@@ -482,11 +352,24 @@ syncTime().finally(()=>{
   setInterval(syncTime, 10*60*1000);
 });
 
-syncCurrent();
-setInterval(syncCurrent, 10*60*1000);
+renderMoon();
+setInterval(renderMoon, 60*60*1000); // update moon hourly
 
-syncForecast();
-setInterval(syncForecast, 30*60*1000);
+(async ()=>{
+  try{
+    const point = await syncCurrentNWS();
+    await syncForecastNWS(point);
+  }catch(e){
+    // current already shows error in meta line
+  }
+})();
+
+setInterval(async ()=>{
+  try{
+    const point = await syncCurrentNWS();
+    await syncForecastNWS(point);
+  }catch(e){}
+}, 30*60*1000);
 
 })();
 </script>
