@@ -170,3 +170,19 @@ h1 {
     grid-template-columns: 1fr;
   }
 }
+
+/* Slightly tighter small text stack for current conditions */
+.small {
+  line-height: 1.45;
+}
+
+/* Make the right block feel balanced */
+.block.right .temp {
+  line-height: 1.05;
+}
+
+/* Optional: tighten label spacing a hair on mobile */
+@media (max-width: 820px){
+  .right { text-align: left; }
+  .block { min-width: 100%; }
+}
