@@ -1,257 +1,403 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Fredonia Hub</title>
-<link rel="stylesheet" href="styles.css"/>
+<link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
 <main class="wrap">
 
-<div class="brand">The Howard Homestead LLC</div>
-<h1>FREDONIA, PA 16124</h1>
+  <div class="brand">The Howard Homestead LLC</div>
+  <h1>FREDONIA, PA 16124</h1>
 
-<section class="panel">
-<div class="row">
+  <!-- ================= TIME + CURRENT ================= -->
+  <section class="panel" aria-label="Time and weather">
+    <div class="row">
 
-<div class="block">
-<div class="label">Eastern Standard Time</div>
-<div class="clock" id="clockTime">--:--</div>
-<div class="date" id="clockDate">Loading date…</div>
-<div class="small" id="syncStatus">Syncing…</div>
-</div>
+      <div class="block">
+        <div class="label">Eastern Standard Time</div>
+        <div class="clock" id="clockTime">--:--</div>
+        <div class="date" id="clockDate">Loading date…</div>
+      </div>
 
-<div class="block right">
-<div class="label">Current Conditions</div>
+      <div class="block right">
+        <div class="label">Current Conditions (16124)</div>
 
-<div class="condRow">
-<img id="condIcon" class="condIcon" src=""/>
-<div>
-<div class="temp" id="tempF">--°F</div>
-<div class="small" id="condText">Loading…</div>
-<div class="small" id="rh">RH: --%</div>
-<div class="small" id="windNow">Wind: --</div>
-<div class="small" id="moonText">Moon: --</div>
-</div>
-<img id="moonIcon" class="moonIcon" src=""/>
-</div>
+        <div class="condRow" style="display:flex;gap:14px;align-items:flex-start;justify-content:flex-end;">
+          <img id="condIcon" class="condIcon" alt="" style="width:64px;height:64px;object-fit:contain;border:1px solid rgba(212,175,55,.25);" />
+          <div>
+            <div class="temp" id="tempF">--°F</div>
+            <div class="small"><span style="font-weight:700;color:#fff;">Conditions:</span> <span id="condText">--</span></div>
+            <div class="small"><span style="font-weight:700;color:#fff;">Humidity:</span> <span id="rh">--</span>%</div>
+            <div class="small"><span style="font-weight:700;color:#fff;">Wind:</span> <span id="windNow">--</span></div>
+            <div class="small"><span style="font-weight:700;color:#fff;">Moon:</span> <span id="moonText">--</span></div>
+          </div>
+          <img id="moonIcon" class="moonIcon" alt="" style="width:44px;height:44px;object-fit:contain;opacity:.95;" />
+        </div>
 
-<div class="small" id="tempMeta">Syncing…</div>
-</div>
+        <div class="small" id="tempMeta">Syncing…</div>
+      </div>
 
-</div>
-</section>
+    </div>
 
-<section class="panel">
-<div class="label">3-Day Forecast</div>
-<div class="forecastGrid" id="forecast3">
-<div class="small">Loading forecast…</div>
-</div>
-</section>
+    <div class="small status" id="syncStatus">Syncing time…</div>
+  </section>
+
+  <!-- ================= FORECAST ================= -->
+  <section class="panel" aria-label="3-day forecast" style="margin-top:14px;">
+    <div class="label">3-Day Forecast</div>
+    <div class="forecastGrid" id="forecast3">
+      <div class="small">Loading forecast…</div>
+    </div>
+  </section>
 
 </main>
 
 <script>
 (function(){
 
-/* ---------- CLOCK (12-hour) ---------- */
-const timeEl=document.getElementById("clockTime");
-const dateEl=document.getElementById("clockDate");
-const syncEl=document.getElementById("syncStatus");
+/* ================= ZIP 16124 COORDS (no geocode; more reliable) ================= */
+const LAT = 41.33336;
+const LON = -80.26486;
 
-let offsetMs=0;
-let lastTimeSync=0;
+/* ================= CLOCK ================= */
+const timeEl = document.getElementById("clockTime");
+const dateEl = document.getElementById("clockDate");
+const syncEl = document.getElementById("syncStatus");
+
+let offsetMs = 0;
+let lastTimeSync = 0;
 
 function formatTime(d){
-return new Intl.DateTimeFormat("en-US",{
-timeZone:"America/New_York",
-hour:"numeric",
-minute:"2-digit",
-hour12:true
-}).format(d);
+  // 12-hour time with AM/PM
+  return new Intl.DateTimeFormat("en-US",{
+    timeZone:"America/New_York",
+    hour:"numeric",
+    minute:"2-digit",
+    hour12:true
+  }).format(d);
 }
 
 function formatDate(d){
-return new Intl.DateTimeFormat("en-US",{
-timeZone:"America/New_York",
-weekday:"long",
-year:"numeric",
-month:"long",
-day:"numeric"
-}).format(d);
+  return new Intl.DateTimeFormat("en-US",{
+    timeZone:"America/New_York",
+    weekday:"long",
+    year:"numeric",
+    month:"long",
+    day:"numeric"
+  }).format(d);
 }
 
 function renderTime(){
-const now=new Date(Date.now()+offsetMs);
-timeEl.textContent=formatTime(now);
-dateEl.textContent=formatDate(now);
+  const now = new Date(Date.now() + offsetMs);
+  timeEl.textContent = formatTime(now);
+  dateEl.textContent = formatDate(now);
+
+  if(lastTimeSync){
+    const age = Math.floor((Date.now()-lastTimeSync)/1000);
+    syncEl.textContent = "Time synced " + age + "s ago";
+  }
 }
 
 async function syncTime(){
-try{
-const r=await fetch("https://time.now/developer/api/timezone/America/New_York",{cache:"no-store"});
-const j=await r.json();
-offsetMs=(j.unixtime*1000)-Date.now();
-lastTimeSync=Date.now();
-syncEl.textContent="Time synced";
-}catch{
-syncEl.textContent="Device time";
-offsetMs=0;
-}
-}
-
-/* ---------- WEATHER CURRENT ---------- */
-const tempEl=document.getElementById("tempF");
-const rhEl=document.getElementById("rh");
-const windEl=document.getElementById("windNow");
-const condTextEl=document.getElementById("condText");
-const condIconEl=document.getElementById("condIcon");
-const moonTextEl=document.getElementById("moonText");
-const moonIconEl=document.getElementById("moonIcon");
-const tempMetaEl=document.getElementById("tempMeta");
-
-let cachedLat=null;
-let cachedLon=null;
-
-async function geocodeZip(){
-const r=await fetch("https://geocoding-api.open-meteo.com/v1/search?name=16124&count=1&country=US");
-const j=await r.json();
-cachedLat=j.results[0].latitude;
-cachedLon=j.results[0].longitude;
+  try{
+    const r = await fetch("https://time.now/developer/api/timezone/America/New_York",{cache:"no-store"});
+    if(!r.ok) throw new Error("time.now HTTP " + r.status);
+    const j = await r.json();
+    if(typeof j.unixtime !== "number") throw new Error("Bad time payload");
+    offsetMs = (j.unixtime * 1000) - Date.now();
+    lastTimeSync = Date.now();
+  }catch(e){
+    offsetMs = 0;
+    syncEl.textContent = "Time sync failed (device time)";
+  }
 }
 
-function moonPhase(phase){
-if(phase===0) return ["New Moon","🌑"];
-if(phase<0.25) return ["Waxing Crescent","🌒"];
-if(phase===0.25) return ["First Quarter","🌓"];
-if(phase<0.5) return ["Waxing Gibbous","🌔"];
-if(phase===0.5) return ["Full Moon","🌕"];
-if(phase<0.75) return ["Waning Gibbous","🌖"];
-if(phase===0.75) return ["Last Quarter","🌗"];
-return ["Waning Crescent","🌘"];
+/* ================= CURRENT CONDITIONS (Open-Meteo) ================= */
+const tempEl = document.getElementById("tempF");
+const tempMetaEl = document.getElementById("tempMeta");
+const rhEl = document.getElementById("rh");
+const windNowEl = document.getElementById("windNow");
+const condEl = document.getElementById("condText");
+const condIconEl = document.getElementById("condIcon");
+const moonTextEl = document.getElementById("moonText");
+const moonIconEl = document.getElementById("moonIcon");
+
+/* WMO weather codes -> simple text */
+function wmoToText(code){
+  const c = Number(code);
+  if(Number.isNaN(c)) return "—";
+  if(c===0) return "Clear";
+  if(c===1) return "Mainly Clear";
+  if(c===2) return "Partly Cloudy";
+  if(c===3) return "Overcast";
+  if(c===45||c===48) return "Fog";
+  if([51,53,55].includes(c)) return "Drizzle";
+  if([56,57].includes(c)) return "Freezing Drizzle";
+  if(c===61) return "Light Rain";
+  if(c===63) return "Rain";
+  if(c===65) return "Heavy Rain";
+  if([66,67].includes(c)) return "Freezing Rain";
+  if(c===71) return "Light Snow";
+  if(c===73) return "Snow";
+  if(c===75) return "Heavy Snow";
+  if(c===77) return "Snow Grains";
+  if(c===80) return "Light Showers";
+  if(c===81) return "Showers";
+  if(c===82) return "Violent Showers";
+  if(c===85) return "Light Snow Showers";
+  if(c===86) return "Heavy Snow Showers";
+  if(c===95) return "Thunderstorm";
+  if([96,99].includes(c)) return "Thunderstorm w/ Hail";
+  return "—";
 }
 
-async function syncTemp(){
-try{
-if(cachedLat===null) await geocodeZip();
-
-const r=await fetch(
-`https://api.open-meteo.com/v1/forecast?latitude=${cachedLat}&longitude=${cachedLon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m&daily=moon_phase&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York`
-);
-const j=await r.json();
-const c=j.current;
-
-tempEl.textContent=Math.round(c.temperature_2m)+"°F";
-rhEl.textContent="RH: "+Math.round(c.relative_humidity_2m)+"%";
-windEl.textContent=`Wind: ${Math.round(c.wind_direction_10m)}° ${Math.round(c.wind_speed_10m)} mph`;
-
-const condMap={
-0:["Clear","https://api.weather.gov/icons/land/day/skc?size=medium"],
-1:["Mostly Clear","https://api.weather.gov/icons/land/day/few?size=medium"],
-2:["Partly Cloudy","https://api.weather.gov/icons/land/day/sct?size=medium"],
-3:["Cloudy","https://api.weather.gov/icons/land/day/ovc?size=medium"],
-61:["Rain","https://api.weather.gov/icons/land/day/rain?size=medium"],
-71:["Snow","https://api.weather.gov/icons/land/day/snow?size=medium"],
-95:["Storm","https://api.weather.gov/icons/land/day/tsra?size=medium"]
-};
-
-const cond=condMap[c.weather_code]||["Conditions","https://api.weather.gov/icons/land/day/ovc?size=medium"];
-condTextEl.textContent=cond[0];
-condIconEl.src=cond[1];
-
-const m=moonPhase(j.daily.moon_phase[0]);
-moonTextEl.textContent="Moon: "+m[0];
-moonIconEl.src="https://em-content.zobj.net/thumbs/120/apple/354/"+encodeURIComponent(m[1])+".png";
-
-tempMetaEl.textContent="Synced";
-
-}catch{
-tempMetaEl.textContent="Weather sync failed";
-}
+function degToCardinal(deg){
+  if (deg === null || deg === undefined || Number.isNaN(deg)) return "—";
+  const dirs=["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+  return dirs[Math.round(deg/22.5)%16];
 }
 
-/* ---------- FORECAST ---------- */
-const forecastWrap=document.getElementById("forecast3");
+/* Use NWS icon set for current conditions (simple mapping) */
+function wmoToNwsIcon(code){
+  const c = Number(code);
+  if(c===0) return "https://api.weather.gov/icons/land/day/skc?size=medium";
+  if(c===1) return "https://api.weather.gov/icons/land/day/few?size=medium";
+  if(c===2) return "https://api.weather.gov/icons/land/day/sct?size=medium";
+  if(c===3) return "https://api.weather.gov/icons/land/day/ovc?size=medium";
+  if(c===45||c===48) return "https://api.weather.gov/icons/land/day/fg?size=medium";
+  if([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(c)) return "https://api.weather.gov/icons/land/day/rain?size=medium";
+  if([71,73,75,77,85,86].includes(c)) return "https://api.weather.gov/icons/land/day/snow?size=medium";
+  if([95,96,99].includes(c)) return "https://api.weather.gov/icons/land/day/tsra?size=medium";
+  return "https://api.weather.gov/icons/land/day/ovc?size=medium";
+}
+
+/* Moon phase icon generator (SVG data URI). phase 0..1 (0=new, 0.5=full) */
+function moonPhaseName(phase){
+  const p = Number(phase);
+  if(p < 0.03 || p > 0.97) return "New Moon";
+  if(p < 0.22) return "Waxing Crescent";
+  if(p < 0.28) return "First Quarter";
+  if(p < 0.47) return "Waxing Gibbous";
+  if(p < 0.53) return "Full Moon";
+  if(p < 0.72) return "Waning Gibbous";
+  if(p < 0.78) return "Last Quarter";
+  return "Waning Crescent";
+}
+
+function moonSvgDataUri(phase){
+  // Simple illuminated disk mask; white moon on transparent
+  const p = Number(phase);
+  const illum = 0.5 * (1 - Math.cos(2*Math.PI*p)); // 0..1
+  // shift controls where the terminator sits (-1..1)
+  const shift = Math.cos(2*Math.PI*p); // +1 new, -1 full
+  const cx = 50 + (shift * 22); // move mask circle left/right
+  const svg =
+`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <mask id="m">
+      <rect width="100" height="100" fill="black"/>
+      <circle cx="50" cy="50" r="38" fill="white"/>
+      <circle cx="${cx.toFixed(2)}" cy="50" r="38" fill="black"/>
+    </mask>
+  </defs>
+  <circle cx="50" cy="50" r="38" fill="white" opacity="0.18"/>
+  <circle cx="50" cy="50" r="38" fill="white" mask="url(#m)"/>
+</svg>`;
+  return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+}
+
+async function syncCurrent(){
+  try{
+    const url =
+      "https://api.open-meteo.com/v1/forecast" +
+      `?latitude=${encodeURIComponent(LAT)}` +
+      `&longitude=${encodeURIComponent(LON)}` +
+      "&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,weather_code" +
+      "&daily=moon_phase" +
+      "&temperature_unit=fahrenheit" +
+      "&wind_speed_unit=mph" +
+      "&timezone=America%2FNew_York";
+
+    const r = await fetch(url,{cache:"no-store"});
+    if(!r.ok) throw new Error("Open-Meteo HTTP " + r.status);
+    const j = await r.json();
+
+    const c = j.current;
+    if(!c) throw new Error("Missing current block");
+
+    const t = c.temperature_2m;
+    const rh = c.relative_humidity_2m;
+    const ws = c.wind_speed_10m;
+    const wd = c.wind_direction_10m;
+    const wc = c.weather_code;
+
+    tempEl.textContent = (typeof t==="number") ? (Math.round(t)+"°F") : "--°F";
+    rhEl.textContent = (typeof rh==="number") ? Math.round(rh) : "--";
+    windNowEl.textContent = (typeof ws==="number" && typeof wd==="number")
+      ? `${Math.round(ws)} mph ${degToCardinal(wd)}`
+      : "--";
+
+    const condText = wmoToText(wc);
+    condEl.textContent = condText;
+    condIconEl.src = wmoToNwsIcon(wc);
+
+    const phase = j?.daily?.moon_phase?.[0];
+    if(typeof phase === "number"){
+      moonTextEl.textContent = `${moonPhaseName(phase)}`;
+      moonIconEl.src = moonSvgDataUri(phase);
+    }else{
+      moonTextEl.textContent = "—";
+      moonIconEl.removeAttribute("src");
+    }
+
+    tempMetaEl.textContent = "Synced";
+  }catch(e){
+    tempMetaEl.textContent = "Weather sync failed";
+  }
+}
+
+/* ================= FORECAST (NWS + gusts from grid) ================= */
+const forecastWrap = document.getElementById("forecast3");
 
 async function fetchJSON(url){
-const r=await fetch(url,{headers:{Accept:"application/geo+json"}});
-return r.json();
+  const r = await fetch(url,{cache:"no-store",headers:{Accept:"application/geo+json"}});
+  if(!r.ok) throw new Error("HTTP "+r.status);
+  return r.json();
+}
+
+function dayKeyNY(date){
+  return new Intl.DateTimeFormat("en-US",{
+    timeZone:"America/New_York",
+    year:"numeric",month:"2-digit",day:"2-digit"
+  }).format(date);
+}
+
+function toMphFrom(uom,value){
+  if(value===null||value===undefined||Number.isNaN(value)) return null;
+  const s=String(uom||"");
+  if(s.includes("knots")) return value*1.15078;
+  if(s.includes("m_s-1")) return value*2.23694;
+  if(s.includes("mph")) return value;
+  return value;
+}
+
+function windStr(dir, speed){
+  const d = dir ? String(dir).trim() : "";
+  const s = speed ? String(speed).trim() : "";
+  return (d || s) ? `${d} ${s}`.trim() : "—";
 }
 
 async function syncForecast(){
-try{
+  try{
+    const point = await fetchJSON(`https://api.weather.gov/points/${LAT},${LON}`);
+    const forecast = await fetchJSON(point.properties.forecast);
+    const grid = await fetchJSON(point.properties.forecastGridData);
 
-if(cachedLat===null) await geocodeZip();
+    const periods = forecast?.properties?.periods || [];
+    if(!periods.length) throw new Error("No forecast periods");
 
-const point=await fetchJSON(`https://api.weather.gov/points/${cachedLat},${cachedLon}`);
-const forecast=await fetchJSON(point.properties.forecast);
-const grid=await fetchJSON(point.properties.forecastGridData);
+    const now = new Date();
+    const dayMap = new Map(); // dayKey -> {day,night}
 
-const gustSeries=grid.properties.windGust?.values||[];
+    for(const p of periods){
+      const start = new Date(p.startTime);
+      if(start < now) continue;
 
-const periods=forecast.properties.periods;
-const days=new Map();
-const now=new Date();
+      const k = dayKeyNY(start);
+      if(!dayMap.has(k)) dayMap.set(k,{day:null,night:null});
+      const entry = dayMap.get(k);
 
-for(const p of periods){
-const start=new Date(p.startTime);
-if(start<now) continue;
+      if(p.isDaytime && !entry.day) entry.day = p;
+      if(!p.isDaytime && !entry.night) entry.night = p;
 
-const key=start.toDateString();
-if(!days.has(key)) days.set(key,{day:null,night:null});
+      if(dayMap.size >= 3){
+        const first3 = Array.from(dayMap.entries()).slice(0,3);
+        const ok = first3.every(([_,e]) => e.day || e.night);
+        if(ok) break;
+      }
+    }
 
-const e=days.get(key);
-if(p.isDaytime && !e.day) e.day=p;
-if(!p.isDaytime && !e.night) e.night=p;
+    const first3 = Array.from(dayMap.entries()).slice(0,3);
 
-if(days.size>=3 && e.day && e.night) break;
+    // Gusts: max per day from grid windGust
+    const gustSeries = grid?.properties?.windGust?.values || [];
+    const gustUom = grid?.properties?.windGust?.uom || "";
+    const gustMaxByDay = new Map();
+
+    for(const v of gustSeries){
+      const startISO = v.validTime.split("/")[0];
+      const start = new Date(startISO);
+      if(start < now) continue;
+
+      const k = dayKeyNY(start);
+      if(!first3.find(([key])=>key===k)) continue;
+
+      const raw = (typeof v.value==="number") ? v.value : null;
+      if(raw===null) continue;
+
+      const mph = toMphFrom(gustUom, raw);
+      const prev = gustMaxByDay.get(k);
+      gustMaxByDay.set(k, (prev===undefined) ? mph : Math.max(prev, mph));
+    }
+
+    forecastWrap.innerHTML = "";
+
+    for(const [k,entry] of first3){
+      const d = entry.day;
+      const n = entry.night;
+
+      const hi = (d && typeof d.temperature==="number") ? `${d.temperature}°F` : "—";
+      const lo = (n && typeof n.temperature==="number") ? `${n.temperature}°F` : "—";
+
+      const icon = (d&&d.icon) || (n&&n.icon) || "";
+      const name = (d&&d.name) || (n&&n.name) || "Forecast";
+
+      const popVal = (d?.probabilityOfPrecipitation?.value ?? n?.probabilityOfPrecipitation?.value);
+      const popText = (typeof popVal==="number") ? `${Math.round(popVal)}%` : "—";
+
+      const windDir = d?.windDirection ?? n?.windDirection;
+      const windSpd = d?.windSpeed ?? n?.windSpeed;
+
+      const gust = gustMaxByDay.get(k);
+      const gustText = (typeof gust==="number") ? `${Math.round(gust)} mph` : "—";
+
+      forecastWrap.insertAdjacentHTML("beforeend",`
+        <div class="fcard">
+          <div class="fday">${name}</div>
+          <div class="frow">
+            ${icon ? `<img class="ficon" src="${icon}" alt="">` : ``}
+            <div class="fmeta">
+              <div class="fhilow"><b>Hi:</b> ${hi} &nbsp; <b>Lo:</b> ${lo}</div>
+              <div><b>PoP:</b> ${popText}</div>
+              <div><b>Wind:</b> ${windStr(windDir, windSpd)}</div>
+              <div><b>Gusts:</b> ${gustText}</div>
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+  }catch(e){
+    forecastWrap.innerHTML = '<div class="small">Forecast load failed.</div>';
+  }
 }
 
-forecastWrap.innerHTML="";
-
-Array.from(days.values()).slice(0,3).forEach(e=>{
-
-const hi=e.day?`${e.day.temperature}°F`:"—";
-const lo=e.night?`${e.night.temperature}°F`:"—";
-const icon=(e.day&&e.day.icon)||(e.night&&e.night.icon)||"";
-const name=(e.day&&e.day.name)||(e.night&&e.night.name)||"Forecast";
-const pop=(e.day?.probabilityOfPrecipitation?.value ?? e.night?.probabilityOfPrecipitation?.value);
-const wind=(e.day?.windDirection+" "+e.day?.windSpeed)||"—";
-
-forecastWrap.insertAdjacentHTML("beforeend",`
-<div class="fcard">
-<div class="fday">${name}</div>
-<div class="frow">
-<img class="ficon" src="${icon}"/>
-<div class="fmeta">
-<div class="fhilow"><b>Hi:</b> ${hi} &nbsp; <b>Lo:</b> ${lo}</div>
-<div><b>PoP:</b> ${pop??"—"}%</div>
-<div><b>Wind:</b> ${wind}</div>
-</div>
-</div>
-</div>
-`);
-});
-
-}catch{
-forecastWrap.innerHTML='<div class="small">Forecast load failed.</div>';
-}
-}
-
-/* ---------- RUN ---------- */
+/* ================= RUN ================= */
 syncTime().finally(()=>{
-renderTime();
-setInterval(renderTime,1000);
-setInterval(syncTime,600000);
+  renderTime();
+  setInterval(renderTime, 1000);
+  setInterval(syncTime, 10 * 60 * 1000);
 });
 
-syncTemp();
-setInterval(syncTemp,600000);
+syncCurrent();
+setInterval(syncCurrent, 10 * 60 * 1000);
 
 syncForecast();
-setInterval(syncForecast,1800000);
+setInterval(syncForecast, 30 * 60 * 1000);
 
 })();
 </script>
