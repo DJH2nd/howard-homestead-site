@@ -303,18 +303,19 @@ async function syncCurrent(){
     fail("Open-Meteo failed: " + (e?.message || "unknown"));
   }
 
-  // 2) Fallback: NWS latest observation + forecast icon
-  try{
-    const p = await fetch(`https://api.weather.gov/points/${LAT},${LON}`, {cache:"no-store", headers:{Accept:"application/geo+json"}});
-    if(!p.ok) throw new Error("NWS points HTTP " + p.status);
-    const point = await p.json();
+ // 2) Fallback: NWS latest observation + forecast icon
+try {
+  // ... your existing NWS code that sets temp/rh/wind/cond/icon ...
 
-    // latest observation
-    const st = await fetch(point.properties.observationStations, {cache:"no-store", headers:{Accept:"application/geo+json"}});
-    if(!st.ok) throw new Error("NWS stations HTTP " + st.status);
-    const stations = await st.json();
-    const firstStation = stations?.observationStations?.[0];
-    if(!firstStation) throw new Error("No NWS station found");
+  // ✅ ALWAYS set moon phase + icon in fallback (no API needed)
+  const phase = approxMoonPhase01(new Date());
+  moonTextEl.textContent = moonPhaseName(phase);
+  moonIconEl.src = moonSvgBase64(phase);
+
+  metaEl.textContent = "Synced (NWS fallback)";
+} catch (e) {
+  metaEl.textContent = "Weather failed: " + (e?.message || "unknown");
+}
 
     const ob = await fetch(firstStation + "/observations/latest", {cache:"no-store", headers:{Accept:"application/geo+json"}});
     if(!ob.ok) throw new Error("NWS obs HTTP " + ob.status);
