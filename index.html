@@ -116,6 +116,56 @@ async function syncTime(){
 }
 
 /* ================= HELPERS ================= */
+
+<script>
+function approxMoonPhase01(date){
+  // Simple synodic cycle approximation: returns 0..1
+  // Reference new moon: 2000-01-06 18:14 UTC (common anchor)
+  const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14, 0);
+  const synodicMs = 29.530588853 * 24 * 60 * 60 * 1000;
+  const t = date.getTime() - knownNewMoon;
+  let phase = (t % synodicMs) / synodicMs;
+  if (phase < 0) phase += 1;
+  return phase; // 0=new, 0.5=full
+}
+
+function moonPhaseName(phase){
+  const p = Number(phase);
+  if(p < 0.03 || p > 0.97) return "New Moon";
+  if(p < 0.22) return "Waxing Crescent";
+  if(p < 0.28) return "First Quarter";
+  if(p < 0.47) return "Waxing Gibbous";
+  if(p < 0.53) return "Full Moon";
+  if(p < 0.72) return "Waning Gibbous";
+  if(p < 0.78) return "Last Quarter";
+  return "Waning Crescent";
+}
+
+function moonSvgBase64(phase){
+  // Base64 SVG data URI for maximum compatibility in <img>. :contentReference[oaicite:1]{index=1}
+  const p = Number(phase);
+  const shift = Math.cos(2*Math.PI*p); // +1 new, -1 full
+  const cx = 50 + (shift * 22);
+
+  const svg =
+`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <mask id="m">
+      <rect width="100" height="100" fill="black"/>
+      <circle cx="50" cy="50" r="38" fill="white"/>
+      <circle cx="${cx.toFixed(2)}" cy="50" r="38" fill="black"/>
+    </mask>
+  </defs>
+  <circle cx="50" cy="50" r="38" fill="white" opacity="0.18"/>
+  <circle cx="50" cy="50" r="38" fill="white" mask="url(#m)"/>
+</svg>`;
+
+  const b64 = btoa(unescape(encodeURIComponent(svg)));
+  return "data:image/svg+xml;base64," + b64;
+}
+</script>
+
+  
 const tempEl = document.getElementById("tempF");
 const metaEl = document.getElementById("tempMeta");
 const rhEl = document.getElementById("rh");
