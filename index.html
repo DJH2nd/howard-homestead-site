@@ -27,11 +27,11 @@
         <div class="label">Current Conditions (16124)</div>
         <div class="temp" id="tempF">--°F</div>
 
-        <div class="small" style="margin-top:8px; line-height:1.45;">
-          <div><span style="color:#fff;">Conditions:</span> <span id="condText">--</span></div>
-          <div><span style="color:#fff;">Humidity:</span> <span id="rh">--</span>%</div>
-          <div><span style="color:#fff;">Wind:</span> <span id="windNow">--</span></div>
-          <div><span style="color:#fff;">Moon:</span> <span id="moonText">--</span></div>
+        <div class="small" style="margin-top:8px;">
+          <div><span style="color:#fff;font-weight:700;">Conditions:</span> <span id="condText">--</span></div>
+          <div><span style="color:#fff;font-weight:700;">Humidity:</span> <span id="rh">--</span>%</div>
+          <div><span style="color:#fff;font-weight:700;">Wind:</span> <span id="windNow">--</span></div>
+          <div><span style="color:#fff;font-weight:700;">Moon:</span> <span id="moonText">--</span></div>
         </div>
 
         <div class="small" id="tempMeta" style="margin-top:8px;">Syncing…</div>
@@ -43,7 +43,7 @@
   </section>
 
   <!-- ================= FORECAST ================= -->
-  <section class="panel" aria-label="3-day forecast">
+  <section class="panel" aria-label="3-day forecast" style="margin-top:14px;">
     <div class="label">3-Day Forecast</div>
     <div class="forecastGrid" id="forecast3">
       <div class="small">Loading forecast…</div>
@@ -55,7 +55,7 @@
 <script>
 (function(){
 
-/* ================= CLOCK (internet synced) ================= */
+/* ================= CLOCK ================= */
 const timeEl = document.getElementById("clockTime");
 const dateEl = document.getElementById("clockDate");
 const syncEl = document.getElementById("syncStatus");
@@ -64,7 +64,7 @@ let offsetMs = 0;
 let lastTimeSync = 0;
 
 function formatTime(d){
-  // 12-hour, AM/PM (non-military)
+  // 12-hour time (AM/PM)
   return new Intl.DateTimeFormat("en-US",{
     timeZone:"America/New_York",
     hour:"numeric",
@@ -84,113 +84,107 @@ function formatDate(d){
 }
 
 function renderTime(){
-  const now = new Date(Date.now() + offsetMs);
-  timeEl.textContent = formatTime(now);
-  dateEl.textContent = formatDate(now);
+  const now=new Date(Date.now()+offsetMs);
+  timeEl.textContent=formatTime(now);
+  dateEl.textContent=formatDate(now);
 
   if(lastTimeSync){
-    const age = Math.floor((Date.now() - lastTimeSync)/1000);
-    syncEl.textContent = "Time synced " + age + "s ago";
+    const age=Math.floor((Date.now()-lastTimeSync)/1000);
+    syncEl.textContent="Time synced "+age+"s ago";
   }
 }
 
 async function syncTime(){
   try{
-    const r = await fetch("https://time.now/developer/api/timezone/America/New_York",{cache:"no-store"});
-    const j = await r.json();
-    offsetMs = (j.unixtime * 1000) - Date.now();
-    lastTimeSync = Date.now();
+    const r=await fetch("https://time.now/developer/api/timezone/America/New_York",{cache:"no-store"});
+    const j=await r.json();
+    offsetMs=(j.unixtime*1000)-Date.now();
+    lastTimeSync=Date.now();
   }catch{
-    offsetMs = 0;
-    syncEl.textContent = "Time sync failed (device time)";
+    offsetMs=0;
+    syncEl.textContent="Time sync failed (device time)";
   }
 }
 
 /* ================= GEO (ZIP -> LAT/LON) ================= */
-let cachedLat = null;
-let cachedLon = null;
+let cachedLat=null;
+let cachedLon=null;
 
 async function geocodeZip(){
-  const r = await fetch("https://geocoding-api.open-meteo.com/v1/search?name=16124&count=1&country=US", {cache:"no-store"});
-  const j = await r.json();
-  const loc = j?.results?.[0];
+  const r=await fetch("https://geocoding-api.open-meteo.com/v1/search?name=16124&count=1&country=US",{cache:"no-store"});
+  const j=await r.json();
+  const loc=j?.results?.[0];
   if(!loc) throw new Error("No geocode result for 16124");
-  cachedLat = loc.latitude;
-  cachedLon = loc.longitude;
+  cachedLat=loc.latitude;
+  cachedLon=loc.longitude;
 }
 
-/* ================= CURRENT CONDITIONS (Open-Meteo) ================= */
-const tempEl = document.getElementById("tempF");
-const tempMetaEl = document.getElementById("tempMeta");
-const rhEl = document.getElementById("rh");
-const windNowEl = document.getElementById("windNow");
-const condEl = document.getElementById("condText");
-const moonEl = document.getElementById("moonText");
+/* ================= CURRENT CONDITIONS ================= */
+const tempEl=document.getElementById("tempF");
+const tempMetaEl=document.getElementById("tempMeta");
+const rhEl=document.getElementById("rh");
+const windNowEl=document.getElementById("windNow");
+const condEl=document.getElementById("condText");
+const moonEl=document.getElementById("moonText");
 
 function degToCardinal(deg){
   if (deg === null || deg === undefined || Number.isNaN(deg)) return "—";
-  const dirs = ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
-  return dirs[Math.round(deg / 22.5) % 16];
+  const dirs=["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+  return dirs[Math.round(deg/22.5)%16];
 }
 
-// WMO Weather interpretation codes (Open-Meteo uses these) :contentReference[oaicite:1]{index=1}
+// Open-Meteo weather_code uses WMO codes
 function wmoToText(code){
-  const c = Number(code);
-  if (Number.isNaN(c)) return "—";
-  if (c === 0) return "Clear";
-  if (c === 1) return "Mainly Clear";
-  if (c === 2) return "Partly Cloudy";
-  if (c === 3) return "Overcast";
-  if (c === 45 || c === 48) return "Fog";
-  if (c === 51 || c === 53 || c === 55) return "Drizzle";
-  if (c === 56 || c === 57) return "Freezing Drizzle";
-  if (c === 61) return "Light Rain";
-  if (c === 63) return "Rain";
-  if (c === 65) return "Heavy Rain";
-  if (c === 66 || c === 67) return "Freezing Rain";
-  if (c === 71) return "Light Snow";
-  if (c === 73) return "Snow";
-  if (c === 75) return "Heavy Snow";
-  if (c === 77) return "Snow Grains";
-  if (c === 80) return "Light Rain Showers";
-  if (c === 81) return "Rain Showers";
-  if (c === 82) return "Violent Rain Showers";
-  if (c === 85) return "Light Snow Showers";
-  if (c === 86) return "Heavy Snow Showers";
-  if (c === 95) return "Thunderstorm";
-  if (c === 96 || c === 99) return "Thunderstorm w/ Hail";
+  const c=Number(code);
+  if(Number.isNaN(c)) return "—";
+  if(c===0) return "Clear";
+  if(c===1) return "Mainly Clear";
+  if(c===2) return "Partly Cloudy";
+  if(c===3) return "Overcast";
+  if(c===45||c===48) return "Fog";
+  if([51,53,55].includes(c)) return "Drizzle";
+  if([56,57].includes(c)) return "Freezing Drizzle";
+  if(c===61) return "Light Rain";
+  if(c===63) return "Rain";
+  if(c===65) return "Heavy Rain";
+  if([66,67].includes(c)) return "Freezing Rain";
+  if(c===71) return "Light Snow";
+  if(c===73) return "Snow";
+  if(c===75) return "Heavy Snow";
+  if(c===77) return "Snow Grains";
+  if(c===80) return "Light Showers";
+  if(c===81) return "Showers";
+  if(c===82) return "Violent Showers";
+  if(c===85) return "Light Snow Showers";
+  if(c===86) return "Heavy Snow Showers";
+  if(c===95) return "Thunderstorm";
+  if([96,99].includes(c)) return "Thunderstorm w/ Hail";
   return "—";
 }
 
-/* ---- Moon phase (local calc; good dashboard approximation) ---- */
-function julianDate(date){
-  return (date.getTime() / 86400000) + 2440587.5;
-}
+/* ---- Moon phase (local approximation) ---- */
+function julianDate(date){ return (date.getTime()/86400000)+2440587.5; }
 function moonPhaseInfo(date){
-  // Reference new moon: 2000-01-06 18:14 UTC ~ JD 2451550.1
-  const jd = julianDate(date);
-  const synodic = 29.530588853;
-  let phase = (jd - 2451550.1) / synodic;
-  phase = phase - Math.floor(phase); // 0..1
-
-  const illum = 0.5 * (1 - Math.cos(2 * Math.PI * phase)); // 0..1
-
-  let name = "New Moon";
-  if (phase < 0.03 || phase > 0.97) name = "New Moon";
-  else if (phase < 0.22) name = "Waxing Crescent";
-  else if (phase < 0.28) name = "First Quarter";
-  else if (phase < 0.47) name = "Waxing Gibbous";
-  else if (phase < 0.53) name = "Full Moon";
-  else if (phase < 0.72) name = "Waning Gibbous";
-  else if (phase < 0.78) name = "Last Quarter";
-  else name = "Waning Crescent";
-
-  return { name, illumPct: Math.round(illum * 100) };
+  const jd=julianDate(date);
+  const synodic=29.530588853;
+  let phase=(jd-2451550.1)/synodic;
+  phase=phase-Math.floor(phase); // 0..1
+  const illum=0.5*(1-Math.cos(2*Math.PI*phase));
+  let name="New Moon";
+  if(phase<0.03||phase>0.97) name="New Moon";
+  else if(phase<0.22) name="Waxing Crescent";
+  else if(phase<0.28) name="First Quarter";
+  else if(phase<0.47) name="Waxing Gibbous";
+  else if(phase<0.53) name="Full Moon";
+  else if(phase<0.72) name="Waning Gibbous";
+  else if(phase<0.78) name="Last Quarter";
+  else name="Waning Crescent";
+  return { name, illumPct: Math.round(illum*100) };
 }
 
 async function syncCurrent(){
   try{
-    if(cachedLat === null || cachedLon === null) await geocodeZip();
+    if(cachedLat===null||cachedLon===null) await geocodeZip();
 
     const url =
       "https://api.open-meteo.com/v1/forecast" +
@@ -201,146 +195,136 @@ async function syncCurrent(){
       "&wind_speed_unit=mph" +
       "&timezone=America%2FNew_York";
 
-    const r = await fetch(url, {cache:"no-store"});
-    if(!r.ok) throw new Error("Weather HTTP " + r.status);
-    const j = await r.json();
+    const r=await fetch(url,{cache:"no-store"});
+    const j=await r.json();
 
-    const t  = j?.current?.temperature_2m;
-    const rh = j?.current?.relative_humidity_2m;
-    const ws = j?.current?.wind_speed_10m;
-    const wd = j?.current?.wind_direction_10m;
-    const wc = j?.current?.weather_code;
+    const t=j?.current?.temperature_2m;
+    const rh=j?.current?.relative_humidity_2m;
+    const ws=j?.current?.wind_speed_10m;
+    const wd=j?.current?.wind_direction_10m;
+    const wc=j?.current?.weather_code;
 
-    tempEl.textContent = (typeof t === "number") ? (Math.round(t) + "°F") : "--°F";
-    rhEl.textContent = (typeof rh === "number") ? Math.round(rh) : "--";
-    condEl.textContent = wmoToText(wc);
-
-    windNowEl.textContent = (typeof ws === "number" && typeof wd === "number")
+    tempEl.textContent=(typeof t==="number") ? (Math.round(t)+"°F") : "--°F";
+    rhEl.textContent=(typeof rh==="number") ? Math.round(rh) : "--";
+    condEl.textContent=wmoToText(wc);
+    windNowEl.textContent=(typeof ws==="number" && typeof wd==="number")
       ? `${Math.round(ws)} mph ${degToCardinal(wd)}`
       : "--";
 
-    // Moon phase uses synced time (falls back to device time if sync failed)
-    const nowForMoon = new Date(Date.now() + offsetMs);
-    const mp = moonPhaseInfo(nowForMoon);
-    moonEl.textContent = `${mp.name} (${mp.illumPct}%)`;
+    const nowForMoon=new Date(Date.now()+offsetMs);
+    const mp=moonPhaseInfo(nowForMoon);
+    moonEl.textContent=`${mp.name} (${mp.illumPct}%)`;
 
-    tempMetaEl.textContent = "Synced";
-  }catch(e){
-    tempMetaEl.textContent = "Current sync failed";
+    tempMetaEl.textContent="Synced";
+  }catch{
+    tempMetaEl.textContent="Current sync failed";
   }
 }
 
 /* ================= FORECAST (NWS + gusts from grid) ================= */
-const forecastWrap = document.getElementById("forecast3");
+const forecastWrap=document.getElementById("forecast3");
 
-function windStr(d, s){
-  return ((d||"")+" "+(s||"")).trim() || "—";
-}
+function windStr(d,s){ return ((d||"")+" "+(s||"")).trim()||"—"; }
 
 async function fetchJSON(url){
-  const r = await fetch(url, {
-    cache: "no-store",
-    headers: { Accept: "application/geo+json" }
-  });
-  if(!r.ok) throw new Error(`HTTP ${r.status}`);
+  const r=await fetch(url,{cache:"no-store",headers:{Accept:"application/geo+json"}});
+  if(!r.ok) throw new Error("HTTP "+r.status);
   return r.json();
 }
 
 function dayKeyNY(date){
   return new Intl.DateTimeFormat("en-US",{
     timeZone:"America/New_York",
-    year:"numeric",
-    month:"2-digit",
-    day:"2-digit"
+    year:"numeric",month:"2-digit",day:"2-digit"
   }).format(date);
 }
 
-function toMphFrom(uom, value){
-  if (value === null || value === undefined || Number.isNaN(value)) return null;
-  if (String(uom).includes("knots")) return value * 1.15078;
-  if (String(uom).includes("m_s-1")) return value * 2.23694;
-  if (String(uom).includes("mph")) return value;
-  return value; // unknown, leave as-is
+function toMphFrom(uom,value){
+  if(value===null||value===undefined||Number.isNaN(value)) return null;
+  const s=String(uom||"");
+  if(s.includes("knots")) return value*1.15078;
+  if(s.includes("m_s-1")) return value*2.23694;
+  if(s.includes("mph")) return value;
+  return value;
 }
 
 async function syncForecast(){
   try{
-    if(cachedLat === null || cachedLon === null) await geocodeZip();
+    if(cachedLat===null||cachedLon===null) await geocodeZip();
 
-    const point = await fetchJSON(`https://api.weather.gov/points/${cachedLat},${cachedLon}`);
-    const forecast = await fetchJSON(point.properties.forecast);
-    const grid = await fetchJSON(point.properties.forecastGridData);
+    const point=await fetchJSON(`https://api.weather.gov/points/${cachedLat},${cachedLon}`);
+    const forecast=await fetchJSON(point.properties.forecast);
+    const grid=await fetchJSON(point.properties.forecastGridData);
 
-    const periods = forecast?.properties?.periods || [];
+    const periods=forecast?.properties?.periods || [];
     if(!periods.length) throw new Error("No forecast periods");
 
-    // Pair day/night for Hi/Lo
-    const now = new Date();
-    const days = new Map();
+    const now=new Date();
+    const days=new Map();
+
     for(const p of periods){
-      const start = new Date(p.startTime);
-      if(start < now) continue;
+      const start=new Date(p.startTime);
+      if(start<now) continue;
 
-      const k = dayKeyNY(start);
-      if(!days.has(k)) days.set(k, { day:null, night:null });
-      const entry = days.get(k);
+      const k=dayKeyNY(start);
+      if(!days.has(k)) days.set(k,{day:null,night:null});
+      const entry=days.get(k);
 
-      if(p.isDaytime && !entry.day) entry.day = p;
-      if(!p.isDaytime && !entry.night) entry.night = p;
+      if(p.isDaytime && !entry.day) entry.day=p;
+      if(!p.isDaytime && !entry.night) entry.night=p;
 
-      if(days.size >= 3) {
-        const first3 = Array.from(days.entries()).slice(0,3);
-        const ok = first3.every(([_,e]) => e.day || e.night);
+      if(days.size>=3){
+        const first3=Array.from(days.entries()).slice(0,3);
+        const ok=first3.every(([_,e])=>e.day||e.night);
         if(ok) break;
       }
     }
 
-    const first3 = Array.from(days.entries()).slice(0,3);
+    const first3=Array.from(days.entries()).slice(0,3);
 
-    // Gusts: max gust per day from grid
-    const gustSeries = grid?.properties?.windGust?.values || [];
-    const gustUom = grid?.properties?.windGust?.uom || "";
-    const gustMaxByDay = new Map();
+    // gusts from grid (max per day)
+    const gustSeries=grid?.properties?.windGust?.values || [];
+    const gustUom=grid?.properties?.windGust?.uom || "";
+    const gustMaxByDay=new Map();
 
     for(const v of gustSeries){
-      const startISO = v.validTime.split("/")[0];
-      const start = new Date(startISO);
-      if(start < now) continue;
+      const startISO=v.validTime.split("/")[0];
+      const start=new Date(startISO);
+      if(start<now) continue;
 
-      const k = dayKeyNY(start);
-      if(!first3.find(([key]) => key === k)) continue;
+      const k=dayKeyNY(start);
+      if(!first3.find(([key])=>key===k)) continue;
 
-      const raw = (typeof v.value === "number") ? v.value : null;
-      if(raw === null) continue;
+      const raw=(typeof v.value==="number") ? v.value : null;
+      if(raw===null) continue;
 
-      const mph = toMphFrom(gustUom, raw);
-      const prev = gustMaxByDay.get(k);
-      gustMaxByDay.set(k, (prev === undefined) ? mph : Math.max(prev, mph));
+      const mph=toMphFrom(gustUom,raw);
+      const prev=gustMaxByDay.get(k);
+      gustMaxByDay.set(k,(prev===undefined)?mph:Math.max(prev,mph));
     }
 
-    // Render
-    forecastWrap.innerHTML = "";
+    forecastWrap.innerHTML="";
 
-    for(const [k, entry] of first3){
-      const d = entry.day;
-      const n = entry.night;
+    for(const [k,entry] of first3){
+      const d=entry.day;
+      const n=entry.night;
 
-      const hi = (d && typeof d.temperature === "number") ? `${d.temperature}°F` : "—";
-      const lo = (n && typeof n.temperature === "number") ? `${n.temperature}°F` : "—";
+      const hi=(d && typeof d.temperature==="number") ? `${d.temperature}°F` : "—";
+      const lo=(n && typeof n.temperature==="number") ? `${n.temperature}°F` : "—";
 
-      const icon = (d && d.icon) || (n && n.icon) || "";
-      const name = (d && d.name) || (n && n.name) || "Forecast";
+      const icon=(d&&d.icon)||(n&&n.icon)||"";
+      const name=(d&&d.name)||(n&&n.name)||"Forecast";
 
-      const popVal = (d?.probabilityOfPrecipitation?.value ?? n?.probabilityOfPrecipitation?.value);
-      const popText = (typeof popVal === "number") ? `${Math.round(popVal)}%` : "—";
+      const popVal=(d?.probabilityOfPrecipitation?.value ?? n?.probabilityOfPrecipitation?.value);
+      const popText=(typeof popVal==="number") ? `${Math.round(popVal)}%` : "—";
 
-      const windDir = d?.windDirection ?? n?.windDirection;
-      const windSpd = d?.windSpeed ?? n?.windSpeed;
+      const windDir=d?.windDirection ?? n?.windDirection;
+      const windSpd=d?.windSpeed ?? n?.windSpeed;
 
-      const gust = gustMaxByDay.get(k);
-      const gustText = (typeof gust === "number") ? `${Math.round(gust)} mph` : "—";
+      const gust=gustMaxByDay.get(k);
+      const gustText=(typeof gust==="number") ? `${Math.round(gust)} mph` : "—";
 
-      forecastWrap.insertAdjacentHTML("beforeend", `
+      forecastWrap.insertAdjacentHTML("beforeend",`
         <div class="fcard">
           <div class="fday">${name}</div>
           <div class="frow">
@@ -348,7 +332,7 @@ async function syncForecast(){
             <div class="fmeta">
               <div class="fhilow"><b>Hi:</b> ${hi} &nbsp; <b>Lo:</b> ${lo}</div>
               <div><b>PoP:</b> ${popText}</div>
-              <div><b>Wind:</b> ${windStr(windDir, windSpd)}</div>
+              <div><b>Wind:</b> ${windStr(windDir,windSpd)}</div>
               <div><b>Gusts:</b> ${gustText}</div>
             </div>
           </div>
@@ -356,23 +340,23 @@ async function syncForecast(){
       `);
     }
 
-  }catch(e){
-    forecastWrap.innerHTML = '<div class="small">Forecast load failed.</div>';
+  }catch{
+    forecastWrap.innerHTML='<div class="small">Forecast load failed.</div>';
   }
 }
 
 /* ================= RUN ================= */
 syncTime().finally(()=>{
   renderTime();
-  setInterval(renderTime, 1000);
-  setInterval(syncTime, 10 * 60 * 1000);
+  setInterval(renderTime,1000);
+  setInterval(syncTime,10*60*1000);
 });
 
 syncCurrent();
-setInterval(syncCurrent, 10 * 60 * 1000);
+setInterval(syncCurrent,10*60*1000);
 
 syncForecast();
-setInterval(syncForecast, 30 * 60 * 1000);
+setInterval(syncForecast,30*60*1000);
 
 })();
 </script>
