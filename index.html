@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Fredonia Hub</title>
-<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="styles.css?v=9" />
 </head>
 
 <body>
@@ -26,16 +26,16 @@
       <div class="block right">
         <div class="label">Current Conditions (16124)</div>
 
-        <div class="condRow" style="display:flex;gap:14px;align-items:flex-start;justify-content:flex-end;">
-          <img id="condIcon" class="condIcon" alt="" style="width:64px;height:64px;object-fit:contain;border:1px solid rgba(212,175,55,.25);" />
+        <div class="condRow" style="display:flex;gap:14px;align-items:flex-start;justify-content:flex-end;flex-wrap:wrap;">
+          <img id="condIcon" alt="" style="width:64px;height:64px;object-fit:contain;border:1px solid rgba(212,175,55,.25);" />
           <div>
             <div class="temp" id="tempF">--°F</div>
-            <div class="small"><span style="font-weight:700;color:#fff;">Conditions:</span> <span id="condText">--</span></div>
-            <div class="small"><span style="font-weight:700;color:#fff;">Humidity:</span> <span id="rh">--</span>%</div>
-            <div class="small"><span style="font-weight:700;color:#fff;">Wind:</span> <span id="windNow">--</span></div>
-            <div class="small"><span style="font-weight:700;color:#fff;">Moon:</span> <span id="moonText">--</span></div>
+            <div class="small"><b style="color:#fff;">Conditions:</b> <span id="condText">--</span></div>
+            <div class="small"><b style="color:#fff;">Humidity:</b> <span id="rh">--</span>%</div>
+            <div class="small"><b style="color:#fff;">Wind:</b> <span id="windNow">--</span></div>
+            <div class="small"><b style="color:#fff;">Moon:</b> <span id="moonText">--</span></div>
           </div>
-          <img id="moonIcon" class="moonIcon" alt="" style="width:44px;height:44px;object-fit:contain;opacity:.95;" />
+          <img id="moonIcon" alt="" style="width:44px;height:44px;object-fit:contain;opacity:.95;" />
         </div>
 
         <div class="small" id="tempMeta">Syncing…</div>
@@ -72,7 +72,6 @@ let offsetMs = 0;
 let lastTimeSync = 0;
 
 function formatTime(d){
-  // 12-hour time with AM/PM
   return new Intl.DateTimeFormat("en-US",{
     timeZone:"America/New_York",
     hour:"numeric",
@@ -116,15 +115,21 @@ async function syncTime(){
   }
 }
 
-/* ================= CURRENT CONDITIONS (Open-Meteo) ================= */
+/* ================= HELPERS ================= */
 const tempEl = document.getElementById("tempF");
-const tempMetaEl = document.getElementById("tempMeta");
+const metaEl = document.getElementById("tempMeta");
 const rhEl = document.getElementById("rh");
-const windNowEl = document.getElementById("windNow");
+const windEl = document.getElementById("windNow");
 const condEl = document.getElementById("condText");
 const condIconEl = document.getElementById("condIcon");
 const moonTextEl = document.getElementById("moonText");
 const moonIconEl = document.getElementById("moonIcon");
+
+function degToCardinal(deg){
+  if (deg === null || deg === undefined || Number.isNaN(deg)) return "—";
+  const dirs=["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+  return dirs[Math.round(deg/22.5)%16];
+}
 
 /* WMO weather codes -> simple text */
 function wmoToText(code){
@@ -144,21 +149,11 @@ function wmoToText(code){
   if(c===71) return "Light Snow";
   if(c===73) return "Snow";
   if(c===75) return "Heavy Snow";
-  if(c===77) return "Snow Grains";
-  if(c===80) return "Light Showers";
-  if(c===81) return "Showers";
-  if(c===82) return "Violent Showers";
-  if(c===85) return "Light Snow Showers";
-  if(c===86) return "Heavy Snow Showers";
+  if([80,81,82].includes(c)) return "Showers";
+  if([85,86].includes(c)) return "Snow Showers";
   if(c===95) return "Thunderstorm";
   if([96,99].includes(c)) return "Thunderstorm w/ Hail";
   return "—";
-}
-
-function degToCardinal(deg){
-  if (deg === null || deg === undefined || Number.isNaN(deg)) return "—";
-  const dirs=["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
-  return dirs[Math.round(deg/22.5)%16];
 }
 
 /* Use NWS icon set for current conditions (simple mapping) */
@@ -170,12 +165,12 @@ function wmoToNwsIcon(code){
   if(c===3) return "https://api.weather.gov/icons/land/day/ovc?size=medium";
   if(c===45||c===48) return "https://api.weather.gov/icons/land/day/fg?size=medium";
   if([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(c)) return "https://api.weather.gov/icons/land/day/rain?size=medium";
-  if([71,73,75,77,85,86].includes(c)) return "https://api.weather.gov/icons/land/day/snow?size=medium";
+  if([71,73,75,85,86].includes(c)) return "https://api.weather.gov/icons/land/day/snow?size=medium";
   if([95,96,99].includes(c)) return "https://api.weather.gov/icons/land/day/tsra?size=medium";
   return "https://api.weather.gov/icons/land/day/ovc?size=medium";
 }
 
-/* Moon phase icon generator (SVG data URI). phase 0..1 (0=new, 0.5=full) */
+/* Moon phase (Open-Meteo gives 0..1) + generated SVG icon */
 function moonPhaseName(phase){
   const p = Number(phase);
   if(p < 0.03 || p > 0.97) return "New Moon";
@@ -187,14 +182,10 @@ function moonPhaseName(phase){
   if(p < 0.78) return "Last Quarter";
   return "Waning Crescent";
 }
-
 function moonSvgDataUri(phase){
-  // Simple illuminated disk mask; white moon on transparent
   const p = Number(phase);
-  const illum = 0.5 * (1 - Math.cos(2*Math.PI*p)); // 0..1
-  // shift controls where the terminator sits (-1..1)
   const shift = Math.cos(2*Math.PI*p); // +1 new, -1 full
-  const cx = 50 + (shift * 22); // move mask circle left/right
+  const cx = 50 + (shift * 22);
   const svg =
 `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <defs>
@@ -210,7 +201,14 @@ function moonSvgDataUri(phase){
   return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
 }
 
+/* ================= CURRENT: Open-Meteo (fallback to NWS if it fails) ================= */
 async function syncCurrent(){
+  // helper to show errors clearly
+  function fail(msg){
+    metaEl.textContent = msg;
+  }
+
+  // 1) Try Open-Meteo
   try{
     const url =
       "https://api.open-meteo.com/v1/forecast" +
@@ -225,47 +223,93 @@ async function syncCurrent(){
     const r = await fetch(url,{cache:"no-store"});
     if(!r.ok) throw new Error("Open-Meteo HTTP " + r.status);
     const j = await r.json();
+    if(!j.current) throw new Error("Open-Meteo missing current");
 
     const c = j.current;
-    if(!c) throw new Error("Missing current block");
 
-    const t = c.temperature_2m;
-    const rh = c.relative_humidity_2m;
-    const ws = c.wind_speed_10m;
-    const wd = c.wind_direction_10m;
-    const wc = c.weather_code;
-
-    tempEl.textContent = (typeof t==="number") ? (Math.round(t)+"°F") : "--°F";
-    rhEl.textContent = (typeof rh==="number") ? Math.round(rh) : "--";
-    windNowEl.textContent = (typeof ws==="number" && typeof wd==="number")
-      ? `${Math.round(ws)} mph ${degToCardinal(wd)}`
+    tempEl.textContent = (typeof c.temperature_2m==="number") ? (Math.round(c.temperature_2m)+"°F") : "--°F";
+    rhEl.textContent   = (typeof c.relative_humidity_2m==="number") ? Math.round(c.relative_humidity_2m) : "--";
+    windEl.textContent = (typeof c.wind_speed_10m==="number" && typeof c.wind_direction_10m==="number")
+      ? `${Math.round(c.wind_speed_10m)} mph ${degToCardinal(c.wind_direction_10m)}`
       : "--";
 
-    const condText = wmoToText(wc);
+    const condText = wmoToText(c.weather_code);
     condEl.textContent = condText;
-    condIconEl.src = wmoToNwsIcon(wc);
+    condIconEl.src = wmoToNwsIcon(c.weather_code);
 
     const phase = j?.daily?.moon_phase?.[0];
     if(typeof phase === "number"){
-      moonTextEl.textContent = `${moonPhaseName(phase)}`;
+      moonTextEl.textContent = moonPhaseName(phase);
       moonIconEl.src = moonSvgDataUri(phase);
     }else{
       moonTextEl.textContent = "—";
       moonIconEl.removeAttribute("src");
     }
 
-    tempMetaEl.textContent = "Synced";
+    metaEl.textContent = "Synced (Open-Meteo)";
+    return; // success
   }catch(e){
-    tempMetaEl.textContent = "Weather sync failed";
+    // continue to fallback
+    fail("Open-Meteo failed: " + (e?.message || "unknown"));
+  }
+
+  // 2) Fallback: NWS latest observation + forecast icon
+  try{
+    const p = await fetch(`https://api.weather.gov/points/${LAT},${LON}`, {cache:"no-store", headers:{Accept:"application/geo+json"}});
+    if(!p.ok) throw new Error("NWS points HTTP " + p.status);
+    const point = await p.json();
+
+    // latest observation
+    const st = await fetch(point.properties.observationStations, {cache:"no-store", headers:{Accept:"application/geo+json"}});
+    if(!st.ok) throw new Error("NWS stations HTTP " + st.status);
+    const stations = await st.json();
+    const firstStation = stations?.observationStations?.[0];
+    if(!firstStation) throw new Error("No NWS station found");
+
+    const ob = await fetch(firstStation + "/observations/latest", {cache:"no-store", headers:{Accept:"application/geo+json"}});
+    if(!ob.ok) throw new Error("NWS obs HTTP " + ob.status);
+    const obs = await ob.json();
+    const o = obs.properties || {};
+
+    // temp: Celsius -> F
+    const tC = o?.temperature?.value;
+    const tF = (typeof tC==="number") ? (tC*9/5+32) : null;
+    tempEl.textContent = (tF!==null) ? (Math.round(tF)+"°F") : "--°F";
+
+    const rh = o?.relativeHumidity?.value;
+    rhEl.textContent = (typeof rh==="number") ? Math.round(rh) : "--";
+
+    // wind speed is often m/s
+    const ws = o?.windSpeed?.value;
+    const mph = (typeof ws==="number") ? (ws*2.23694) : null;
+    const wd = o?.windDirection?.value;
+    windEl.textContent = (mph!==null && typeof wd==="number") ? `${Math.round(mph)} mph ${degToCardinal(wd)}` : "--";
+
+    // description
+    condEl.textContent = o?.textDescription || "—";
+
+    // icon: use first forecast period icon
+    const fc = await fetch(point.properties.forecast, {cache:"no-store", headers:{Accept:"application/geo+json"}});
+    if(fc.ok){
+      const forecast = await fc.json();
+      const period0 = forecast?.properties?.periods?.[0];
+      if(period0?.icon) condIconEl.src = period0.icon;
+    }
+
+    // moon: keep previous (unknown from NWS here)
+    moonTextEl.textContent = moonTextEl.textContent || "—";
+    metaEl.textContent = "Synced (NWS fallback)";
+  }catch(e){
+    metaEl.textContent = "Weather failed: " + (e?.message || "unknown");
   }
 }
 
-/* ================= FORECAST (NWS + gusts from grid) ================= */
+/* ================= FORECAST (NWS + gusts) ================= */
 const forecastWrap = document.getElementById("forecast3");
 
-async function fetchJSON(url){
-  const r = await fetch(url,{cache:"no-store",headers:{Accept:"application/geo+json"}});
-  if(!r.ok) throw new Error("HTTP "+r.status);
+async function fetchGeo(url){
+  const r = await fetch(url,{cache:"no-store", headers:{Accept:"application/geo+json"}});
+  if(!r.ok) throw new Error("HTTP " + r.status);
   return r.json();
 }
 
@@ -293,16 +337,15 @@ function windStr(dir, speed){
 
 async function syncForecast(){
   try{
-    const point = await fetchJSON(`https://api.weather.gov/points/${LAT},${LON}`);
-    const forecast = await fetchJSON(point.properties.forecast);
-    const grid = await fetchJSON(point.properties.forecastGridData);
+    const point = await fetchGeo(`https://api.weather.gov/points/${LAT},${LON}`);
+    const forecast = await fetchGeo(point.properties.forecast);
+    const grid = await fetchGeo(point.properties.forecastGridData);
 
     const periods = forecast?.properties?.periods || [];
     if(!periods.length) throw new Error("No forecast periods");
 
     const now = new Date();
     const dayMap = new Map(); // dayKey -> {day,night}
-
     for(const p of periods){
       const start = new Date(p.startTime);
       if(start < now) continue;
@@ -316,14 +359,12 @@ async function syncForecast(){
 
       if(dayMap.size >= 3){
         const first3 = Array.from(dayMap.entries()).slice(0,3);
-        const ok = first3.every(([_,e]) => e.day || e.night);
-        if(ok) break;
+        if(first3.every(([_,e]) => e.day || e.night)) break;
       }
     }
-
     const first3 = Array.from(dayMap.entries()).slice(0,3);
 
-    // Gusts: max per day from grid windGust
+    // gusts per day (max)
     const gustSeries = grid?.properties?.windGust?.values || [];
     const gustUom = grid?.properties?.windGust?.uom || "";
     const gustMaxByDay = new Map();
@@ -345,14 +386,12 @@ async function syncForecast(){
     }
 
     forecastWrap.innerHTML = "";
-
     for(const [k,entry] of first3){
       const d = entry.day;
       const n = entry.night;
 
       const hi = (d && typeof d.temperature==="number") ? `${d.temperature}°F` : "—";
       const lo = (n && typeof n.temperature==="number") ? `${n.temperature}°F` : "—";
-
       const icon = (d&&d.icon) || (n&&n.icon) || "";
       const name = (d&&d.name) || (n&&n.name) || "Forecast";
 
@@ -380,9 +419,8 @@ async function syncForecast(){
         </div>
       `);
     }
-
   }catch(e){
-    forecastWrap.innerHTML = '<div class="small">Forecast load failed.</div>';
+    forecastWrap.innerHTML = '<div class="small">Forecast failed: '+ (e?.message || "unknown") +'</div>';
   }
 }
 
@@ -390,14 +428,14 @@ async function syncForecast(){
 syncTime().finally(()=>{
   renderTime();
   setInterval(renderTime, 1000);
-  setInterval(syncTime, 10 * 60 * 1000);
+  setInterval(syncTime, 10*60*1000);
 });
 
 syncCurrent();
-setInterval(syncCurrent, 10 * 60 * 1000);
+setInterval(syncCurrent, 10*60*1000);
 
 syncForecast();
-setInterval(syncForecast, 30 * 60 * 1000);
+setInterval(syncForecast, 30*60*1000);
 
 })();
 </script>
