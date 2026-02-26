@@ -186,3 +186,23 @@ h1 {
   .right { text-align: left; }
   .block { min-width: 100%; }
 }
+
+/* Current conditions icons */
+.condRow{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.condIcon{
+  width:64px;
+  height:64px;
+  object-fit:contain;
+}
+
+.moonIcon{
+  width:42px;
+  height:42px;
+  margin-left:auto;
+  opacity:.9;
+}
