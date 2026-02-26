@@ -24,15 +24,23 @@
       </div>
 
       <div class="block right">
-        <div class="label">Current Conditions (16124)</div>
-        <div class="temp" id="tempF">--°F</div>
+  <div class="label">Current Conditions</div>
 
-        <div class="small" style="margin-top:8px;">
-          <div><span style="color:#fff;font-weight:700;">Conditions:</span> <span id="condText">--</span></div>
-          <div><span style="color:#fff;font-weight:700;">Humidity:</span> <span id="rh">--</span>%</div>
-          <div><span style="color:#fff;font-weight:700;">Wind:</span> <span id="windNow">--</span></div>
-          <div><span style="color:#fff;font-weight:700;">Moon:</span> <span id="moonText">--</span></div>
-        </div>
+  <div class="condRow">
+    <img id="condIcon" class="condIcon" src="" alt="">
+    <div>
+      <div class="temp" id="tempF">--°F</div>
+      <div class="small" id="condText">Loading…</div>
+      <div class="small" id="rh">RH: --%</div>
+      <div class="small" id="windNow">Wind: --</div>
+      <div class="small" id="moonText">Moon: --</div>
+    </div>
+
+    <img id="moonIcon" class="moonIcon" src="" alt="">
+  </div>
+
+  <div class="small" id="tempMeta">Syncing…</div>
+</div>
 
         <div class="small" id="tempMeta" style="margin-top:8px;">Syncing…</div>
       </div>
