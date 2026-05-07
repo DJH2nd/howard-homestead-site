@@ -128,6 +128,27 @@ async function syncTime(){
 }
 
 /* ================= MOON (local calc + base64 SVG) ================= */
+function approxMoonPhase01(date){
+  const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14, 0);
+  const synodicMs = 29.530588853 * 24 * 60 * 60 * 1000;
+  const t = date.getTime() - knownNewMoon;
+  let phase = (t % synodicMs) / synodicMs;
+  if (phase < 0) phase += 1;
+  return phase;
+}
+
+function moonPhaseName(phase){
+  const p = Number(phase);
+  if(p < 0.03 || p > 0.97) return "New Moon";
+  if(p < 0.22) return "Waxing Crescent";
+  if(p < 0.28) return "First Quarter";
+  if(p < 0.47) return "Waxing Gibbous";
+  if(p < 0.53) return "Full Moon";
+  if(p < 0.72) return "Waning Gibbous";
+  if(p < 0.78) return "Last Quarter";
+  return "Waning Crescent";
+}
+
 function moonSvgBase64(phase){
   const name = moonPhaseName(phase);
 
