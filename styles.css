@@ -206,3 +206,31 @@ h1 {
   margin-left:auto;
   opacity:.9;
 }
+.hero {
+  padding: 40px 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.eyebrow {
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.hero h1 {
+  font-size: 42px;
+  margin: 10px 0;
+}
+
+.hero-subtitle {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.hero-bio {
+  font-size: 17px;
+  line-height: 1.6;
+}
